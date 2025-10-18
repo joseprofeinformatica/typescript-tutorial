@@ -161,6 +161,68 @@ function suma(a: number, b: number) {
 let resultado = suma(3, 4); // resultado: number
 ```
 
+## Operadores
+
+### Operadores de comparación y lógicos
+
+| Operador | Nombre | Ejemplo | Resultado |
+|-----------|---------|----------|------------|
+| `==` | Igualdad (sin tipo) | `"5" == 5` | `true` |
+| `===` | Igualdad estricta | `"5" === 5` | `false` |
+| `!=` | Desigualdad (sin tipo) | `"5" != 5` | `false` |
+| `!==` | Desigualdad estricta | `"5" !== 5` | `true` |
+| `<`, `>`, `<=`, `>=` | Comparación numérica | `5 > 3` | `true` |
+| `&&` | AND lógico | `a && b` | Devuelve `b` si `a` es verdadero |
+| `\|\|` | OR lógico | `a \|\| b` | Devuelve `a` si es verdadero |
+| `!` | Negación lógica | `!true` | `false` |
+
+### Operadores aritméticos
+
+| Operador | Significado | Ejemplo | Resultado |
+|-----------|--------------|----------|-----------|
+| `+` | Suma o concatenación | `3 + 2`, `"a" + "b"` | `5`, `"ab"` |
+| `-`, `*`, `/`, `%` | Resta, multiplicación, división, módulo | `10 % 3` | `1` |
+| `**` | Exponenciación | `2 ** 3` | `8` |
+| `++`, `--` | Incremento / decremento | `x++` | Suma o resta 1 |
+
+### Operadores de asignación
+
+| Operador | Ejemplo | Equivale a |
+|-----------|----------|------------|
+| `=` | `x = 5` | — |
+| `+=` | `x += 2` | `x = x + 2` |
+| `-=` | `x -= 2` | `x = x - 2` |
+| `*=` | `x *= 2` | `x = x * 2` |
+| `/=` | `x /= 2` | `x = x / 2` |
+| `??=` | **Asignación nullish** | `x ??= 10` → si `x` es `null` o `undefined`, asigna `10` |
+| `&&=` | **Asignación AND** | `x &&= y` → si `x` es true, asigna `y` |
+| `\|\|=` | **Asignación OR** | `x \|\|= y` → si `x` es falso, asigna `y` |
+
+
+### Operadores de acceso y seguridad
+
+| Operador | Nombre | Qué hace | Ejemplo |
+|-----------|---------|-----------|----------|
+| `?.` | **Optional chaining** | Accede a la propiedad solo si existe | `persona?.direccion?.ciudad` |
+| `!` | **Non-null assertion** (solo TS) | Indica que no es `null` o `undefined` | `persona!.nombre` |
+| `??` | **Nullish coalescing** | Valor por defecto si es `null`/`undefined` | `valor ?? "defecto"` |
+| `?.[` | Encadenamiento opcional con índice | Acceso seguro en arrays | `frutas?.[0]` |
+| `?.()` | Encadenamiento opcional con función | Llama a una función si existe | `objeto.metodo?.()` |
+| `? :` | Operador ternario | if corto | `edad > 18 ? "Adulto" : "Menor"` |
+
+### Operadores de propagación y destructuración
+
+| Operador | Nombre | Ejemplo |
+|-----------|---------|----------|
+| `...` | **Spread** | `const copia = [...array]` |
+| `...` | **Rest** (en parámetros) | `function sumar(...nums) {}` |
+
+```ts
+const base = { a: 1, b: 2 };
+const extra = { b: 3, c: 4 };
+const combinado = { ...base, ...extra }; // { a: 1, b: 3, c: 4 }
+```
+
 # Estructuras de control y repetición.
 
 ## if-else if - else
@@ -669,3 +731,199 @@ obtenerUsuarios()
 .catch((error)=>{console.log(`Error al ejecutar la función async: ${error}`)})
 ```
 
+
+# Objetos
+
+## Objeto literal
+
+Es la forma más simple de crear un objeto. La principal desventaja es que no permite reutilizar la estructura de dicho objeto, lo que puede probocar errores en la definición de otros objetos parecidos.
+
+```ts
+const persona = {
+  nombre: "Ana",
+  edad: 25,
+  saludar: function () {
+    console.log(`Hola, soy ${this.nombre}`);
+  }
+};
+
+console.log(persona.nombre); // Ana
+persona.saludar();           // Hola, soy Ana
+```
+
+# Type
+En TypeScript, `type` permite crear alias de tipo, no solo para objetos, sino para estructuras complejas.
+
+```ts
+type Persona = {
+  nombre: string;
+  edad: number;
+};
+
+const persona: Persona = { nombre: "Ana", edad: 30 };
+
+```
+## Parámetros opcionales `?`
+Las propiedades opcionales permiten que no todas las claves deban estar presentes en un objeto. Si una propiedad está marcada con `?`, puede existir o no, lo cual es muy común en Angular para formularios o datos parciales de APIs.
+
+```ts
+type Usuario = {
+  nombre: string;
+  email?: string; // opcional
+};
+
+const u1: Usuario = { nombre: "Pedro" };         
+const u2: Usuario = { nombre: "Lucía", email: "lucia@mail.com" }; 
+```
+
+## Propiedades readonly
+Las propiedades solo lectura (`readonly`) no pueden ser modificadas después de la creación del objeto. Útil para constantes, configuraciones o valores de inicialización que no deben cambiar.
+
+```ts
+type Configuracion = {
+  readonly version: string;
+  modo: string;
+};
+
+const appConfig: Configuracion = { version: "1.0.0", modo: "producción" };
+
+// appConfig.version = "2.0.0"; ❌ Error: es de solo lectura
+appConfig.modo = "desarrollo";  // ✅ permitido
+```
+
+## Insertions types (&)
+Permiten combinar varios tipos en uno solo. El nuevo tipo tiene todas las propiedades de los tipos combinados.
+
+```ts
+type Persona = {
+  nombre: string;
+};
+
+type Contacto = {
+  telefono: string;
+};
+
+type Empleado = Persona & Contacto & { puesto: string };
+
+const e1: Empleado = {
+  nombre: "María",
+  telefono: "123456789",
+  puesto: "Desarrolladora"
+};
+```
+## Template Literal Types
+Los Template Literal Types en TypeScript funcionan de manera similar a las plantillas de cadena (template strings) en JavaScript, pero a nivel de tipos. Te permiten combinar tipos de texto mediante interpolación (usando ${}), para generar nuevos tipos de cadena.
+
+En el siguiente ejemplo, cualquier cadena que empiece por "Hola " será válida para el tipo Saludo.
+
+
+```ts
+type Saludo = `Hola ${string}`;
+
+let mensaje1: Saludo = "Hola José"; // ✅ válido
+let mensaje2: Saludo = "Adiós José"; // ❌ error
+```
+
+
+
+## Union types (|)
+Permiten que una variable u objeto pueda ser de varios tipos posibles. Muy usado para tipos flexibles en funciones o respuestas HTTP donde puede llegar un valor o null, o diferentes formatos de datos.
+
+```ts
+type Resultado = string | number;
+
+let r: Resultado;
+r = "Aprobado"; // ✅
+r = 10;         // ✅
+//r = true;       // ❌ Error, no es string ni number
+```
+
+
+## Interpolación de varios tipos
+
+```ts
+type Entidad = "usuario" | "producto";
+type Accion = "crear" | "eliminar" | "actualizar";
+
+type PermisoAvanzado = `${Accion}_${Entidad}`;
+```
+
+## Aserciones de tipos (Type Assertions)
+Se usa cuando TypeScript no puede inferir el tipo exacto pero tú sabes cuál es. Una aserción de tipo le dice a TypeScript: “Confía en mí, sé mejor que tú qué tipo tiene esta variable”. 
+
+```ts
+const elemento = document.querySelector("#input-nombre") as HTMLInputElement;
+
+console.log(elemento.value); // TypeScript ahora sabe que tiene propiedad `value`
+
+```
+
+## Enumerados
+
+Permite definir un conjunto de constantes bajo un identificador. Si imprimimos el valor de un valor del enumerado observaremos que lo que almacena es el un valor numérico.
+
+Los enum ayudan a que tu código sea más legible, mantenible y seguro, evitando errores por escribir cadenas o números incorrectos.
+
+```ts
+enum Direccion {
+  Norte,
+  Sur,
+  Este,
+  Oeste
+}
+
+Direccion.Norte   // 0
+Direccion.Sur     // 1
+Direccion.Este    // 2
+Direccion.Oeste   // 3
+```
+
+## Enumerados con numeración personalizada
+
+Puedes cambiar el valor inicial y los siguientes se incrementarán automáticamente, o podemos asignar manualmente los valores.
+
+```ts
+enum Estado {
+  Pendiente = 1,
+  EnProgreso,  // 2
+  Completado   // 3
+}
+
+enum Rol {
+  Admin = 10,
+  Editor = 20,
+  Usuario = 30
+}
+
+```
+
+## Emnumeraciones de cadenas
+
+En lugar de usar números, puedes usar valores de texto. Los valores se mantienen legibles incluso en tiempo de ejecución, lo cual es ideal cuando se trabaja con APIs, bases de datos o configuraciones. 
+
+
+```ts
+enum Color {
+  Rojo = "ROJO",
+  Verde = "VERDE",
+  Azul = "AZUL"
+}
+
+let favorito: Color = Color.Rojo;
+console.log(favorito); // "ROJO"
+```
+Una desventaja es que los string enums no permiten el acceso inverso (no puedes hacer Color["ROJO"]).
+
+```ts
+enum EstadoReserva {
+  Pendiente = "PENDIENTE",
+  Confirmada = "CONFIRMADA",
+  Cancelada = "CANCELADA"
+}
+
+function cambiarEstado(estado: EstadoReserva) {
+  console.log(`La reserva está ahora: ${estado}`);
+}
+
+cambiarEstado(EstadoReserva.Confirmada); // ✅
+```
