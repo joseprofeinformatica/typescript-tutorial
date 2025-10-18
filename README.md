@@ -27,7 +27,7 @@ En TypeScript (igual que en JS), podemos declarar variables usando var, let o co
 - const: tiene ámbito de bloque `{}` y no se puede reasignar una vez declarada. Debe inicializarse al ser declarada. 
 
 ``` Typescript
-// --------- VAR ---------
+// --------- VAR ---------V
 var nombreVar = "Ana";
 console.log(nombreVar); // Ana
 
@@ -736,10 +736,25 @@ obtenerUsuarios()
 
 ## Objeto literal
 
-Es la forma más simple de crear un objeto. La principal desventaja es que no permite reutilizar la estructura de dicho objeto, lo que puede probocar errores en la definición de otros objetos parecidos.
+Es la forma más simple de crear un objeto, se basa en una lista de `clave:valor` entre llaves `{}`. 
+
+ La principal desventaja es que no permite reutilizar la estructura de dicho objeto, lo que puede probocar errores en la definición de otros objetos parecidos.
+
+Ventajas:
+- Son fáciles y rápidos de definir.
+- Su sintaxis es muy clara y se parece mucho al formato JSON.
+- Pueden ser usados para la definición de objetos que no se van a volver a repetir, como, por ejemplo objetos de configuración.
+
+Desventajas:
+- No son reutilizables. En cada nuevo objeto se debe definir su estructura.
+- No usa un contrato (`interface` o `type`) que garantice que todos los objetos tienen la misma estructura.
+
+
 
 ```ts
-const persona = {
+
+// DEFINICIÓN DE UN OBJETO
+let persona = {
   nombre: "Ana",
   edad: 25,
   saludar: function () {
@@ -747,42 +762,84 @@ const persona = {
   }
 };
 
+// ACCESO A SUS PROPIEDADES
 console.log(persona.nombre); // Ana
+console.log(persona['edad']) // 25
+
+// ACCESO A SUS MÉTODOS
 persona.saludar();           // Hola, soy Ana
+
+// MODIFICACIÓN DE DEL VALOR DE UNA PROPIEDAD
+persona.edad = 20
+
 ```
 
-# Type
-En TypeScript, `type` permite crear alias de tipo, no solo para objetos, sino para estructuras complejas.
+## Type
+Para solucionar la problemática de la estructura de los literales podemos usar los `type`. Un `type` es una plantilla que permite su reutilización en la declaración de otros objetos lo que permitirá que todos ellos compartan la misma estructura.
+
+Ventajas:
+- Son reutilizables ya que permiten la creación de nuevas objetos a partir de dicha estructura definida.
+- Son muy flexibles ya que permiten la creación de otras estructuras más complejas a partir de las uniones `|` o las intersecciones `&`.
+
+Desventajas:
+- Antes de crear un objeto es necesario definir la estructura de este a través del `type`.
+
 
 ```ts
-type Persona = {
-  nombre: string;
-  edad: number;
+
+// DEFINICIÓN DEL TYPE
+type Usuario = {
+  id: number,
+  nombre: string,
+  estaActivo: boolean,
 };
+
+// CREACIÓN DE OBJETOS A PARTIR DEL TYPE
+const usuario1: Usuario = {
+  id: 1,
+  nombre: "Elena",
+  estaActivo: true
+};
+
+const usuario2: Usuario = {
+  id: 2,
+  nombre: "Marcos",
+  estaActivo: false
+};
+
+// Si intentamos crear un objeto que no cumpla la estructura del Type nos aparecerá un error.
+// const usuarioIncorrecto: Usuario = {
+//   id: 3,
+//   nombre: "Ana" // Error: Falta la propiedad 'estaActivo'
+// };
 
 const persona: Persona = { nombre: "Ana", edad: 30 };
 
 ```
-## Parámetros opcionales `?`
+### Parámetros opcionales `?`
 Las propiedades opcionales permiten que no todas las claves deban estar presentes en un objeto. Si una propiedad está marcada con `?`, puede existir o no, lo cual es muy común en Angular para formularios o datos parciales de APIs.
 
 ```ts
 type Usuario = {
-  nombre: string;
-  email?: string; // opcional
+  id: number,
+  nombre: string,
+  estaActivo: boolean,
+  email?:string
 };
 
-const u1: Usuario = { nombre: "Pedro" };         
-const u2: Usuario = { nombre: "Lucía", email: "lucia@mail.com" }; 
+
+const u1: Usuario = { id:1, nombre: "Pedro", estaActivo:true};         
+const u2: Usuario = { id:2, nombre: "Lucía",estaActivo:false,email: "lucia@mail.com" }; 
+
 ```
 
-## Propiedades readonly
+### Propiedades readonly
 Las propiedades solo lectura (`readonly`) no pueden ser modificadas después de la creación del objeto. Útil para constantes, configuraciones o valores de inicialización que no deben cambiar.
 
 ```ts
 type Configuracion = {
-  readonly version: string;
-  modo: string;
+  readonly version: string,
+  modo: string
 };
 
 const appConfig: Configuracion = { version: "1.0.0", modo: "producción" };
@@ -791,8 +848,8 @@ const appConfig: Configuracion = { version: "1.0.0", modo: "producción" };
 appConfig.modo = "desarrollo";  // ✅ permitido
 ```
 
-## Insertions types (&)
-Permiten combinar varios tipos en uno solo. El nuevo tipo tiene todas las propiedades de los tipos combinados.
+### Insertions types (&)
+Permiten combinar varios tipos en uno solo, que tendrá todas las propiedades de los tipos combinados.
 
 ```ts
 type Persona = {
@@ -811,7 +868,9 @@ const e1: Empleado = {
   puesto: "Desarrolladora"
 };
 ```
-## Template Literal Types
+
+
+### Template Literal Types
 Los Template Literal Types en TypeScript funcionan de manera similar a las plantillas de cadena (template strings) en JavaScript, pero a nivel de tipos. Te permiten combinar tipos de texto mediante interpolación (usando ${}), para generar nuevos tipos de cadena.
 
 En el siguiente ejemplo, cualquier cadena que empiece por "Hola " será válida para el tipo Saludo.
@@ -823,32 +882,54 @@ type Saludo = `Hola ${string}`;
 let mensaje1: Saludo = "Hola José"; // ✅ válido
 let mensaje2: Saludo = "Adiós José"; // ❌ error
 ```
-
-
-
-## Union types (|)
-Permiten que una variable u objeto pueda ser de varios tipos posibles. Muy usado para tipos flexibles en funciones o respuestas HTTP donde puede llegar un valor o null, o diferentes formatos de datos.
-
-```ts
-type Resultado = string | number;
-
-let r: Resultado;
-r = "Aprobado"; // ✅
-r = 10;         // ✅
-//r = true;       // ❌ Error, no es string ni number
-```
-
-
-## Interpolación de varios tipos
+#### Interpolación de varios tipos
+Podemos combiar dos template literal types.
 
 ```ts
 type Entidad = "usuario" | "producto";
 type Accion = "crear" | "eliminar" | "actualizar";
 
 type PermisoAvanzado = `${Accion}_${Entidad}`;
+
+/*
+PermisoAvanzado es equivalente a:
+
+type PermisoAvanzado = 
+  "crear_usuario" | "crear_producto" |
+  "eliminar_usuario" | "eliminar_producto" |
+  "actualizar_usuario" | "actualizar_producto";
+*/
+```
+Esto es extremadamente útil para crear conjuntos de permisos, claves de eventos o cualquier otro string que siga un patrón predecible, garantizando que solo se puedan usar las combinaciones válidas.
+
+### Union types (|)
+Permiten que una variable u objeto pueda ser de varios tipos posibles. Muy usado para tipos flexibles en funciones o respuestas HTTP donde puede llegar un valor o null, o diferentes formatos de datos.
+
+```ts
+type IdPattern = `pid-${number}`
+type Id =  IdPattern | number; // Un ID puede ser un string o un número
+
+type SituacionLaboral = 'empleado' | 'desempleado' | 'buscandoTrabajo'; // Un tipo para estados específicos
+
+type Persona = {
+  id?:Id,
+  nombre: string,
+  situacionLaboral: SituacionLaboral
+};
+
+let p1:Persona = {id:1,nombre:'Jose',situacionLaboral:'desempleado'}
+
+p1.id = 'pid-1';
+//p1.id = 'pid'; //NO VALIDO
+
+p1.situacionLaboral ='empleado'; // Válido
+
+//p1.situacionLaboral ='busqueda'; // Error: 'busqueda' no es uno de los valores permitidos
+
 ```
 
-## Aserciones de tipos (Type Assertions)
+
+### Aserciones de tipos (Type Assertions)
 Se usa cuando TypeScript no puede inferir el tipo exacto pero tú sabes cuál es. Una aserción de tipo le dice a TypeScript: “Confía en mí, sé mejor que tú qué tipo tiene esta variable”. 
 
 ```ts
@@ -878,7 +959,7 @@ Direccion.Este    // 2
 Direccion.Oeste   // 3
 ```
 
-## Enumerados con numeración personalizada
+### Enumerados con numeración personalizada
 
 Puedes cambiar el valor inicial y los siguientes se incrementarán automáticamente, o podemos asignar manualmente los valores.
 
@@ -897,7 +978,7 @@ enum Rol {
 
 ```
 
-## Emnumeraciones de cadenas
+### Emnumeraciones de cadenas
 
 En lugar de usar números, puedes usar valores de texto. Los valores se mantienen legibles incluso en tiempo de ejecución, lo cual es ideal cuando se trabaja con APIs, bases de datos o configuraciones. 
 
@@ -927,3 +1008,107 @@ function cambiarEstado(estado: EstadoReserva) {
 
 cambiarEstado(EstadoReserva.Confirmada); // ✅
 ```
+
+### Diferencias entre los enums y los types
+La principal diferencia entre los enumerados y los types es que los enumerados crean un objeto real en JavaScript al ser compilados, mientras que los types son solo un alias, una construcción de TypeScript, que desaparecen al ser compilados.
+
+Características de los enumerados:
+- Los enumerados existen en tiempo de ejecución, lo que añade algo de peso al código final.
+```ts
+enum Direction {
+  Up,
+  Down,
+  Left,
+  Right,
+}
+
+// Compiled JavaScript
+/*
+"use strict";
+var Direction;
+(function (Direction) {
+  Direction[(Direction["Up"] = 0)] = "Up";
+  Direction[(Direction["Down"] = 1)] = "Down";
+  Direction[(Direction["Left"] = 2)] = "Left";
+  Direction[(Direction["Right"] = 3)] = "Right";
+})(Direction || (Direction = {}));
+*/
+```
+- En los enumerados podemos obtener el nombre a partir del valor `EstadoPedido[1]`.
+- Los valores pueden ser numéricos por defecto o strings.
+- No son flexibles. Si quisieramos añadir un nuevo valor, tenrdíamos que actualizar cada lugar del código donde se use. Veamos un ejemplo.
+
+Tenemos el siguiente código inicial:
+
+```ts
+enum EstadoTicket {
+  Abierto,      // 0
+  EnProgreso,   // 1
+  Cerrado,      // 2
+}
+
+// Supongamos que guardas el estado como un número en la base de datos.
+// Ahora, recibes el número '1' de la base de datos.
+const estadoDesdeDB = 1;
+
+// Usas el mapeo inverso para saber qué significa ese '1'.
+if (EstadoTicket[estadoDesdeDB] === "EnProgreso") {
+  console.log("El ticket está siendo trabajado."); // ✅ Lógica correcta
+}
+```
+Refactorización inofensiva: Decidimos que Pendiente es un nombre mejor que Abierto. Simplemente renombras el miembro y además, añadimos un nuevo estado Urgente al principio para darle prioridadd.
+
+
+```ts
+enum EstadoTicket {
+  Urgente,      // 0
+  Pendiente,    // 1
+  EnProgreso,   // 2
+  Cerrado,      // 3
+}
+```
+ El bug silencioso: El código original que dependía del valor numérico ahora está roto, pero compila sin errores.
+
+``` ts
+const estadoDesdeDB = 1; // Este '1' antes significaba "EnProgreso"
+
+// La lógica ahora interpreta '1' de forma incorrecta.
+console.log(`El estado del ticket es: ${EstadoTicket[estadoDesdeDB]}`);
+// Muestra: "El estado del ticket es: Pendiente" ❌ ¡INCORRECTO!
+
+if (EstadoTicket[estadoDesdeDB] === "EnProgreso") {
+  console.log("El ticket está siendo trabajado."); // Esta condición nunca se cumple.
+}
+```
+Tu lógica de negocio ha cambiado sin que te des cuenta. Los tickets que estaban "En Progreso" ahora aparecen como "Pendiente".
+
+Este problema no existe con los union types de strings, porque el valor y el nombre son lo mismo.
+```ts
+type EstadoTicketType = 'abierto' | 'en-progreso' | 'cerrado';
+
+const estadoDesdeDB: EstadoTicketType = 'en-progreso'; // El valor es descriptivo
+
+if (estadoDesdeDB === 'en-progreso') {
+  console.log("El ticket está siendo trabajado."); // ✅ Lógica correcta
+}
+```
+Si cambias 'abierto' por 'pendiente', TypeScript te obligará a actualizar todos los sitios donde se usaba 'abierto', lo cual es seguro. Si añades un nuevo estado, no afecta a los valores existentes.
+```ts
+type EstadoTicketType = 'urgente' | 'pendiente' | 'en-progreso' | 'cerrado';
+
+const estadoDesdeDB: EstadoTicketType = 'en-progreso'; // Sigue siendo 'en-progreso'
+
+if (estadoDesdeDB === 'en-progreso') {
+  console.log("El ticket está siendo trabajado."); // ✅ La lógica sigue funcionando
+}
+```
+
+Características de los type.
+- Solo son usados en tiempo de compilación. Al ser compilados desaparecen, lo que permite que sean más ligeros y eficientes.
+- No tienen mapeo inverso.
+- Son muy flexibles ya que puede usar cualquier valor.
+
+
+¿Cuándo usar cada uno de ellos?
+- Usa type para restringir los valores de una variable (estados, roles, tipos de botones, etc.). Es la opción más común.
+- Usa enum solo si necesitas alguna de sus características específicas, como el mapeo inverso de número a string o si estás trabajando con una librería que los requiere.
