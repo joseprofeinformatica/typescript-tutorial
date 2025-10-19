@@ -1112,3 +1112,519 @@ Características de los type.
 ¿Cuándo usar cada uno de ellos?
 - Usa type para restringir los valores de una variable (estados, roles, tipos de botones, etc.). Es la opción más común.
 - Usa enum solo si necesitas alguna de sus características específicas, como el mapeo inverso de número a string o si estás trabajando con una librería que los requiere.
+
+## Interfaces `interface`
+Al igual que los `type`, las interfaces `interface` permiten establecer una plantilla que define la forma que debe tener un objeto, es decir, define las propiedades y los métodos del objeto.
+
+Ventajas:
+- Garantiza que los objetos tengan una estructura consistente.
+- Permite la reutilización y la escalabilidad. Si la estructura evoluciona puede ser cambiada desde un solo lugar.
+- Poliformismo. Permite que diferentes clases implementen la misma interfaz, garantizando que todas ellas tengan un conjunto de métodos y propiedades en común.
+- Declarating Merging (Fusión de Declaraciones): Una característica única de las interfaces es que pueden ser definidas en múltiples partes del código y TypeScript las fusionará.
+
+
+Desventajas:
+- Solo existen en tiempo de compilación. Las interfaces desaparecen por completo cuando el código se compila a JavaScript. Son una herramienta durante la fase de desarrollo, lo que no permite que posteriormente se use en tiempo de ejecución usando un `instanceOf MiInterfaz`
+- No pueden contener implementación.
+- Son menos flexibles que los `Type`.
+
+
+```ts
+
+// DECLARACIÓN
+interface Vehiculo {
+  marca: string;
+  modelo: string;
+  anyo: number;
+}
+
+// CREACIÓN DE UN OBJETO A PARTIR DE LA INTERFAZ
+const miCoche: Vehiculo = {
+  marca: "Toyota",
+  modelo: "Corolla",
+  año: 2022
+};
+```
+
+### Propiedades opcionales `?` y de solo lectura `readonly`
+Al igual que en los `type`, las `interface` también admite propiedades opcionales o de solo lectura.
+
+```ts
+interface PerfilUsuario {
+  readonly id: number; // No se puede cambiar después de la creación
+  nombre: string;
+  avatarUrl?: string; // Es opcional, puede ser undefined
+}
+
+const usuario: PerfilUsuario = {
+  id: 101,
+  nombre: "Ana"
+};
+
+// Esto es válido, porque avatarUrl es opcional
+console.log(usuario.nombre);
+
+// Esto dará un error, porque 'id' es de solo lectura
+// usuario.id = 102;
+```
+
+### Extender interfaces `extends`
+
+Una interfaz puede heredar las propiedades de otra, permitiendo crear estructuras más complejas a partir de otras más simples.
+
+```ts
+
+interface ProductoBase {
+  id: number;
+  nombre: string;
+  precio: number;
+}
+
+// Ropa hereda todo de ProductoBase y añade nuevas propiedades
+interface Ropa extends ProductoBase {
+  talla: 'S' | 'M' | 'L';
+  color: string;
+}
+
+const miCamiseta: Ropa = {
+  id: 201,
+  nombre: "Camiseta de algodón",
+  precio: 19.99,
+  talla: 'M',
+  color: "azul"
+};
+```
+
+### Declarating Mergin
+
+Como hemos mencionado al comienzo del apartado, las interfaces pueden ser definidas en múltiples partes del código y TypeScript las fusionará.
+
+```ts
+interface Box {
+  height: number;
+  width: number;
+}
+
+interface Box {
+  scale: number;
+}
+let box: Box = { height: 5, width: 6, scale: 10 };
+```
+
+### Propiedades de tipo función.
+
+Una interface no solo puede definir sus propiedades, sino que también puede describir la forma que debe tener una función. Esto es muy útil para asegurar que los métodos de un objeto o las funciones que pasas como argumentos tengan los parámetros y el tipo de retorno correctos.
+
+```ts
+interface Calculadora {
+  // Describe una función 'sumar' que toma dos números y devuelve un número.
+  sumar: (num1: number, num2: number) => number;
+  
+  // Describe una función 'restar' con la misma estructura.
+  restar: (num1: number, num2: number) => number;
+}
+
+const miCalculadora: Calculadora = {
+  sumar: (a, b) => {
+    return a + b;
+  },
+  
+  restar: (x, y) => {
+    return x - y;
+  }
+  
+  // Si intentaras hacer esto, TypeScript daría un error:
+  // multiplicar: (a, b) => a * b; // Error: 'multiplicar' no existe en la interfaz 'Calculadora'
+  // sumar: (a: string) => a; // Error: La firma de la función no coincide con la de la interfaz
+};
+
+```
+
+### Call Signature (Firma de llamada)
+
+Las interfaces también permiten definir la estructura de una función, asegunrando que tenga los parámetros y el tipo de retorno correcto, creando lo que se llama su firma de llamada.
+
+```ts
+interface OperacionMatematica {
+  (a: number, b: number): number;
+}
+
+const sumar: OperacionMatematica = (x, y) => {
+  return x + y;
+};
+
+const restar: OperacionMatematica = (num1, num2) => {
+  return num1 - num2;
+};
+
+// TypeScript te protege si intentas romper el contrato
+// const multiplicar: OperacionMatematica = (a, b) => {
+//   return `El resultado es ${a * b}`; // ❌ Error: La función devuelve string, no number.
+// };
+
+```
+
+### ¿Cuál es la diferencia entre un `type` y una `interface`?
+
+Tanto type como interface permiten describir la forma de los datos (qué propiedades y tipos tiene un objeto). La gran diferencia está en su flexibilidad, alcance y capacidad de extensión.
+
+`interface`: Su propósito es definir la estructura de un objeto o el contrato de una clase. Es el pilar de la programación orientada a objetos en TypeScript.
+
+`type`: Es más general. Se usa para crear un alias o estructura más flexibles. Es la herramienta principal para crear uniones (|) e intersecciones (&).
+
+Ambos pueden extenderse, pero la sintaxis es diferente:
+
+```ts
+interface Animal {
+  nombre: string;
+}
+
+interface Perro extends Animal {
+  raza: string;
+}
+
+type AnimalType = {
+  nombre: string;
+};
+
+type PerroType = AnimalType & {
+  raza: string;
+};
+```
+
+Las interfaces adminten el Declaration Mergin, cosa que no se puede realizar en los type
+
+```ts
+// Declaración original (podría venir de una librería)
+interface Ventana {
+  titulo: string;
+}
+
+// Tu propia declaración en otro archivo
+interface Ventana {
+  tema: "oscuro" | "claro";
+}
+
+// TypeScript las une automáticamente.
+// El tipo final es { titulo: string; tema: "oscuro" | "claro"; }
+
+type VentanaType = {
+  titulo: string;
+};
+
+// ❌ Error: Identifier 'VentanaType' has already been declared.
+type VentanaType = {
+  tema: "oscuro" | "claro";
+};
+```
+
+## Clases 
+
+Las clases permiten definir tanto las propiedades como el comportamiento que tendrán los objetos creados a partir de ella. Es el pilar fundamental de la Programación Orientada a Objetos.
+
+Ventajas:
+- Encapsulación: Agrupan las propiedades y los métodos que operan sobre esos datos en una sola unidad.
+- Reutilización (Herencia): Se puede crear una clase nueva que herede las propiedades y los métodos de una clase existente.
+- Abstracción. Permite ocutar detalles complejos de la implementación y exponer solo la funcionalidad necesaria.
+- Plantilla para objetos: proporciona un modelo claro y reutilizable para crear objetos con una estructura consistente.
+- No se eliminan durante la compilación, estas se convierten a JavaScript.
+
+Desventajas:
+- El codigo resultante será más pesado ya que las clases generan código JS.
+- En ocasiones usar Clase para objetos simples genera código excesivo. Es por ello, por lo que se recomienda el uso de type o interfaces.
+
+### Declaración e instanciación.
+Primero, es neceario declarar  la clase (la estructura del objeto). Luego, usas la palabra clave new para crear una instancia (un objeto real) a partir de esa clase.
+
+```ts
+// 1. Declaración
+class Jugador {
+  // Propiedades: datos que el objeto contendrá
+  nombreUsuario: string;
+  puntuacion: number = 0; // Puede tener un valor por defecto
+  estaActivo: boolean = true;
+
+  // Métodos: acciones que el objeto puede realizar
+  mostrarInfo() {
+    console.log(`Usuario: ${this.nombreUsuario}, Puntuación: ${this.puntuacion}`);
+  }
+}
+
+// 2. Instanciación (crear objetos a partir del plano)
+const jugador1 = new Jugador();
+jugador1.nombreUsuario = "Alice";
+
+const jugador2 = new Jugador();
+jugador2.nombreUsuario = "Bob";
+jugador2.puntuacion = 100;
+
+jugador1.mostrarInfo(); // Muestra: Usuario: Alice, Puntuación: 0
+jugador2.mostrarInfo(); // Muestra: Usuario: Bob, Puntuación: 100
+```
+
+### El constructor
+
+El constructor es un método especial que se ejecuta automáticamente al crear una nueva instancia de la clase. Se usa para inicializar las propiedades del objeto.
+
+```ts
+class Jugador {
+  nombreUsuario: string;
+  puntuacion: number = 0;
+  estaActivo: boolean = true;
+
+  // El constructor
+  constructor(nombreUsuario:string,puntuacion:number,estaActivo:boolean){
+    this.nombreUsuario = nombreUsuario;
+    this.puntuacion=puntuacion;
+    this.estaActivo = estaActivo;
+  }
+
+
+  mostrarInfo() {
+    console.log(`Usuario: ${this.nombreUsuario}, Puntuación: ${this.puntuacion}`);
+  }
+}
+
+const jugador1 = new Jugador("jose",10,true);
+console.log(jugador1.nombreUsuario)
+
+```
+
+TypeScript ofrece un atajo para los constructores que crea e inicializa las propiedades automáticamente:
+
+```ts
+// Versión abreviada
+class Producto {
+  // 'public' crea propiedades con estos nombres automáticamente
+  constructor(public id: number, public nombre: string, public precio: number) {}
+}
+
+const teclado = new Producto(101, "Teclado Mecánico", 99.99);
+console.log(teclado.nombre); // Muestra: Teclado Mecánico
+```
+
+### Propiedades opcionales `?` y de solo lectura `readonly`
+
+```ts
+
+class Jugador {
+  readonly id:number;
+  nombreUsuario: string;
+  puntuacion: number = 0;
+  estaActivo: boolean = true;
+  urlPerfil?:string;
+  // El constructor
+  constructor(id:number,nombreUsuario:string,puntuacion:number,estaActivo:boolean,urlPerfil:string){
+    this.id =id;
+    this.nombreUsuario = nombreUsuario;
+    this.puntuacion=puntuacion;
+    this.estaActivo = estaActivo;
+    this.urlPerfil = urlPerfil;
+  }
+
+
+  mostrarInfo() {
+    console.log(`Usuario: ${this.nombreUsuario}, Puntuación: ${this.puntuacion}`);
+  }
+}
+
+const jugador1 = new Jugador(1,"jose",10,true,"facebook.es/profile/jose");
+console.log(jugador1.nombreUsuario)
+```
+### Herencia
+
+Puedes crear una nueva clase que herede de una clase padre. La clase hija obtiene todas las propiedades y métodos del padre y puede añadir los suyos propios o sobrescribir los existentes.
+
+`super` se utiliza para llamar al constructor o métodos de la clase padre.
+
+```ts
+// Clase padre
+class Vehiculo {
+  constructor(public marca: string) {}
+
+  moverse() {
+    console.log("El vehículo se está moviendo.");
+  }
+}
+
+// Clase hija que hereda de Vehiculo
+class Coche extends Vehiculo {
+  // 'super()' llama al constructor de la clase padre (Vehiculo)
+  constructor(marca: string, public modelo: string) {
+    super(marca); // Debe llamarse primero
+  }
+
+  // Sobrescribiendo un método del padre
+  moverse() {
+    console.log(`El coche ${this.marca} ${this.modelo} está conduciendo.`);
+  }
+}
+
+const miCoche = new Coche("Ford", "Mustang");
+miCoche.moverse(); // Muestra: El coche Ford Mustang está conduciendo.
+console.log(miCoche.marca); // Muestra: Ford (heredado de Vehiculo)
+```
+
+### Modificadores de acceso (`public`,`private`,`protected`)
+
+- public (por defecto): Se puede acceder desde cualquier lugar.
+- private: Solo se puede acceder desde dentro de la misma clase.
+- protected: Se puede acceder desde dentro de la misma clase y cualquier clase hija.
+
+```ts
+class Persona {
+  // ✅ public: Accesible desde cualquier lugar.
+  public nombre: string;
+
+  // ⛔ private: Solo accesible DENTRO de la clase Persona.
+  private edad: number;
+
+  // ⚠️ protected: Accesible DENTRO de la clase Persona y en las clases que hereden de ella (como Empleado).
+  protected direccion: string;
+
+  constructor(nombre: string, edad: number, direccion: string) {
+    this.nombre = nombre;
+    this.edad = edad;
+    this.direccion = direccion;
+  }
+
+  public presentarse(): void {
+    // Dentro de la misma clase, tenemos acceso a todo.
+    console.log(`Hola, soy ${this.nombre}, tengo ${this.edad} años y vivo en ${this.direccion}.`);
+  }
+}
+
+// --- Clase Hija ---
+class Empleado extends Persona {
+  constructor(nombre: string, edad: number, direccion: string, public puesto: string) {
+    // 'super' llama al constructor de la clase padre (Persona)
+    super(nombre, edad, direccion);
+  }
+
+  public mostrarInfoEmpleado(): void {
+    console.log(`Nombre del empleado: ${this.nombre}`); // ✅ OK: 'nombre' es público.
+    console.log(`Dirección del empleado: ${this.direccion}`); // ✅ OK: 'direccion' es protegido y Empleado es una clase hija.
+    // console.log(`Edad del empleado: ${this.edad}`); // ⛔ ERROR: 'edad' es privado de Persona. No se puede acceder aquí.
+  }
+```
+
+### Implementación de interfaces
+Las interfaces sirven para definir la forma que deben tener los objetos o clases, mientras que las clases se encargan de implementar esa forma y añadir comportamiento (métodos, lógica, etc.).
+
+```ts
+interface Persona {
+  nombre: string;
+  edad: number;
+}
+
+interface Trabajador {
+  puesto: string;
+  salario: number;
+}
+
+class Empleado implements Persona, Trabajador {
+  constructor(
+    public nombre: string,
+    public edad: number,
+    public puesto: string,
+    public salario: number
+  ) {}
+
+  descripcion(): string {
+    return `${this.nombre}, ${this.edad} años, trabaja como ${this.puesto}`;
+  }
+}
+```
+
+### Polimorfismo con interfaces
+
+En programación, el polimorfismo significa que diferentes clases pueden comportarse de maneras distintas aunque compartan una misma interfaz o clase base. 
+
+`“poli” = muchos y “morphos” = formas`
+
+```ts
+interface Animal {
+  nombre: string;
+  emitirSonido(): void;
+}
+
+class Perro implements Animal {
+  constructor(public nombre: string) {}
+  emitirSonido() {
+    console.log("🐶 Guau!");
+  }
+}
+
+class Gato implements Animal {
+  constructor(public nombre: string) {}
+  emitirSonido() {
+    console.log("🐱 Miau!");
+  }
+}
+
+function hacerSonar(animal: Animal) {
+  animal.emitirSonido();
+}
+
+const mascotas: Animal[] = [new Perro("Toby"), new Gato("Michi")];
+
+mascotas.forEach(hacerSonar);
+
+```
+
+### Clases abstractas
+
+Una clase abstracta es un tipo especial de clase que actúa como un plano base para otras clases. No puedes crear un objeto directamente a partir de ella, sino que sirve como una plantilla que define una estructura y un comportamiento comunes que sus clases hijas deben seguir y pueden heredar.
+
+Es el punto intermedio perfecto entre una interfaz (que solo define el contrato) y una clase normal (que lo implementa todo).
+
+```ts
+abstract class Figura {
+  // Propiedad concreta con implementación
+  constructor(public nombre: string) {}
+
+  // Método concreto que las clases hijas heredan "gratis"
+  mostrarNombre(): void {
+    console.log(`Esta figura es un: ${this.nombre}`);
+  }
+
+  // Método abstracto: el "contrato"
+  // No tiene cuerpo {}, solo define la firma.
+  // Obliga a las clases hijas a implementarlo.
+  abstract calcularArea(): number;
+}
+
+class Circulo extends Figura {
+  constructor(public radio: number) {
+    // 'super' llama al constructor de la clase padre 'Figura'
+    super("círculo");
+  }
+
+  // Se implementa el método abstracto exigido por el contrato
+  calcularArea(): number {
+    return Math.PI * this.radio * this.radio;
+  }
+}
+
+class Rectangulo extends Figura {
+  constructor(public base: number, public altura: number) {
+    super("rectángulo");
+  }
+
+  // Se implementa el método abstracto de una forma diferente
+  calcularArea(): number {
+    return this.base * this.altura;
+  }
+}
+
+const miCirculo = new Circulo(10);
+const miRectangulo = new Rectangulo(4, 6);
+
+// const miFigura = new Figura("algo"); // ⛔ ERROR: No se puede crear una instancia de una clase abstracta.
+
+miCirculo.mostrarNombre(); // Muestra: "Esta figura es un: círculo" (Método heredado)
+console.log(`Área: ${miCirculo.calcularArea()}`); // Muestra: "Área: 314.15..."
+
+miRectangulo.mostrarNombre(); // Muestra: "Esta figura es un: rectángulo" (Método heredado)
+console.log(`Área: ${miRectangulo.calcularArea()}`); // Muestra: "Área: 24"
+```
