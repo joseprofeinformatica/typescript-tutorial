@@ -613,7 +613,7 @@ console.log("con ?? ->", cantidad ?? 99); // 0   (0 no es null ni undefined)
 
 Solo coinciden cuando el valor es `null` o `undefined`. En cualquier otro caso *falsy*, `||` sustituye un dato que era perfectamente válido:
 
-| Valor | `valor || 99` | `valor ?? 99` |
+| Valor | `valor \|\| 99` | `valor ?? 99` |
 |---|---|---|
 | `0` | `99` ⚠️ | `0` |
 | `""` | `99` ⚠️ | `""` |
