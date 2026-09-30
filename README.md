@@ -599,7 +599,10 @@ console.log("u2 ciudad ->", u2.direccion?.ciudad); // undefined
 console.log("u2 ciudad ->", u2.direccion?.ciudad ?? "Sin ciudad");
 ```
 
-La diferencia con `||` es importante y es fuente de bugs reales:
+La diferencia con `||` es importante y es fuente de bugs reales. No preguntan lo mismo:
+
+- `||` pregunta: *¿es esto **falsy**?* (`0`, `""`, `false`, `NaN`, `null`, `undefined`)
+- `??` pregunta: *¿es esto **`null` o `undefined`**?* (solo esos dos)
 
 ```ts
 // Cuidado: `||` también sustituye "" y 0, `??` no.
@@ -608,7 +611,18 @@ console.log("con || ->", cantidad || 99); // 99  (0 se considera falsy)
 console.log("con ?? ->", cantidad ?? 99); // 0   (0 no es null ni undefined)
 ```
 
-Si usas `||` para poner un valor por defecto a una cantidad, un `0` legítimo se convertirá en el valor por defecto. Usa `??`.
+Solo coinciden cuando el valor es `null` o `undefined`. En cualquier otro caso *falsy*, `||` sustituye un dato que era perfectamente válido:
+
+| Valor | `valor || 99` | `valor ?? 99` |
+|---|---|---|
+| `0` | `99` ⚠️ | `0` |
+| `""` | `99` ⚠️ | `""` |
+| `false` | `99` ⚠️ | `false` |
+| `NaN` | `99` ⚠️ | `NaN` |
+| `null` | `99` | `99` |
+| `undefined` | `99` | `99` |
+
+Si usas `||` para poner un valor por defecto a una cantidad, un `0` legítimo se convertirá en el valor por defecto. Usa `??`, y reserva `||` para cuando de verdad quieras tratar *cualquier* valor vacío como ausente.
 
 | Operador | Nombre | Qué hace |
 |---|---|---|
