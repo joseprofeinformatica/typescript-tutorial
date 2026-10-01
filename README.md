@@ -1043,18 +1043,46 @@ Una función solo puede devolver un valor, pero si ese valor es una tupla puedes
 
 > 📁 Soluciones comentadas: [`src/ejercicios/`](src/ejercicios/README.md)
 
-Los diecinueve ejercicios del curso comparten un **hilo conductor**: la gestión académica de un ciclo formativo. Este primer bloque cubre los capítulos 01-06.
+Los diecinueve ejercicios del curso cuentan una misma historia: la **gestión académica de un ciclo formativo** (grupos, alumnos, notas, matrículas…). Este primer bloque corresponde a los capítulos 01 a 06.
 
-Trabaja así: escribe tu versión, ejecútala, compara con la salida esperada y pasa `npm run check`. Solo entonces mira la solución.
+## Cómo trabajar cada ejercicio
+
+1. Crea tu fichero **dentro de `src/`**, por ejemplo en `src/mis-ejercicios/ejercicio-01.ts`. Si lo creas fuera de `src/`, `npm run check` no lo revisará.
+2. Termina cada fichero con esta línea:
+   ```ts
+   export {};
+   ```
+   Sin ella, las variables de un ejercicio chocan con las de otro que use los mismos nombres y aparece el error `Cannot redeclare block-scoped variable`.
+3. Déjalo ejecutándose mientras trabajas. Se volverá a ejecutar cada vez que guardes:
+   ```bash
+   npm run dev -- src/mis-ejercicios/ejercicio-01.ts
+   ```
+4. Compara lo que sale por pantalla con la **salida esperada** de cada enunciado.
+5. Pasa `npm run check` para asegurarte de que no hay errores de tipos.
+6. Solo entonces abre la solución y compárala con la tuya. Hay muchas formas correctas de resolver cada ejercicio.
 
 ---
 
 ### Ejercicio 01 — La ficha del módulo
-*Capítulos 01, 02 y 03*
+*Capítulos 01, 02 y 03* · **Practicarás:** `const` y `let`, operaciones con números y plantillas de texto.
 
-Guarda en constantes el nombre del centro, el ciclo y las plazas totales (30), y en una variable los alumnos matriculados (26). Muestra la ficha del grupo con las plazas libres **calculadas**, no guardadas en otra variable. Después da de alta a dos alumnos más y vuelve a mostrar el estado, añadiendo el porcentaje de ocupación con un decimal y un mensaje según queden plazas o no.
+Vas a montar la ficha de un grupo de clase: cuántas plazas tiene y cuántas están ocupadas.
 
-Termina declarando un objeto `grupo` con `const` y cambiándole el tutor, para comprobar qué permite realmente `const`.
+**Pasos**
+
+1. Guarda en **constantes** (`const`) los datos que no cambian en todo el curso: el nombre del centro (`"IES Los Alcores"`), el ciclo (`"Desarrollo de Aplicaciones Multiplataforma"`) y las plazas totales (`30`).
+2. Guarda en una **variable** (`let`) los alumnos matriculados (`26`), porque ese dato sí cambia.
+3. Muestra la ficha: el centro y el ciclo, los matriculados y las plazas libres. Las plazas libres **no las guardes** en otra variable: calcúlalas cada vez que las necesites (plazas totales menos matriculados).
+4. Matricula a dos alumnos más y vuelve a mostrar los matriculados y las plazas libres.
+5. Muestra el porcentaje de ocupación con **un decimal** y, debajo, `"Quedan plazas"` o `"Grupo completo"`, según corresponda.
+6. Declara con `const` un objeto `grupo` con un código (`"DAM2"`) y un tutor. Cámbiale el tutor y muéstralo. ¿Te ha dejado? Prueba ahora a asignarle a `grupo` un objeto entero nuevo y lee el error que da el compilador.
+
+> 💡 **Pistas**
+> - ¿Por qué calcular las plazas libres en vez de guardarlas? Si las guardas, cuando cambien los matriculados tendrás que acordarte de actualizarlas también.
+> - Para mostrar un número con un decimal: `numero.toFixed(1)`.
+> - Para elegir entre dos mensajes en una línea: `condicion ? "mensaje si sí" : "mensaje si no"`.
+
+**Salida esperada**
 
 ```
 IES Los Alcores — Desarrollo de Aplicaciones Multiplataforma
@@ -1069,11 +1097,25 @@ Grupo DAM2, tutor: Ana Serrano
 ---
 
 ### Ejercicio 02 — Notas que pueden no existir
-*Capítulos 02 y 03*
+*Capítulos 02 y 03* · **Practicarás:** `null`, valores por defecto con `??` y `?.`, y datos de tipo `unknown`.
 
-Una práctica sin entregar **no es un cero**: es la ausencia de nota. Modela dos notas como `number | null` (una entregada y otra sin corregir) y muéstralas con un texto por defecto cuando falten.
+Una práctica sin entregar **no es un 0**: es que todavía no hay nota. TypeScript permite expresar esa diferencia.
 
-Después demuestra la diferencia entre `||` y `??` con una nota que valga `0`. Añade un tipo `Alumno` con un `contacto` opcional que a su vez tenga un `telefono` opcional, y muestra los datos de dos alumnos, uno con contacto y otro sin él. Cierra convirtiendo a número un dato `unknown` que llega de un formulario.
+**Pasos**
+
+1. Declara dos notas de tipo `number | null`: la de la práctica vale `8.5` y la del examen vale `null` (aún no está corregido).
+2. Muéstralas usando `??`, de forma que cuando falte la nota aparezca `"sin entregar"` o `"sin corregir"`.
+3. Declara una nota que valga `0` y muéstrala dos veces: una con `|| "sin nota"` y otra con `?? "sin nota"`. Compara los resultados. ¿Cuál de los dos se equivoca, y por qué?
+4. Crea un `type Alumno` con un `nombre` y un `contacto` **opcional**. El contacto tiene un `email` y un `telefono`, que también es opcional.
+5. Crea dos alumnos: Ana, con contacto (`ana@ies.es`) pero sin teléfono, y Luis, sin contacto. Muestra el email de los dos y el teléfono de Ana. Cuando falte un dato, debe aparecer `"no consta"`.
+6. Simula un dato que llega de un formulario: `const desdeFormulario: unknown = "7.25"`. Comprueba con `typeof` que es un texto, conviértelo a número y muéstralo con dos decimales.
+
+> 💡 **Pistas**
+> - En el paso 5, Luis no tiene `contacto`. Para leer su email sin que el programa se rompa, necesitas `?.`.
+> - Para convertir un texto en número: `Number("7.25")`.
+> - Si dudas en el paso 3, repasa la tabla de `??` frente a `||` del capítulo 03.
+
+**Salida esperada**
 
 ```
 Práctica: 8.5
@@ -1089,13 +1131,27 @@ Convertida a número: 7.25
 ---
 
 ### Ejercicio 03 — Calificaciones y convocatorias
-*Capítulo 04*
+*Capítulo 04* · **Practicarás:** `if` / `else if`, `switch`, bucles, `continue` y `break`.
 
-Escribe `calificar(nota)` que devuelva Sobresaliente (≥9), Notable (≥7), Bien (≥6), Suficiente (≥5) o Insuficiente, y rechace las notas fuera de 0-10. Aplícala a `[10, 8.5, 6.2, 5, 3.4, 11]`.
+**Pasos**
 
-Añade `convocatoria(mes)` con un `switch`: marzo es la 1ª evaluación parcial, junio la ordinaria, septiembre la extraordinaria y el resto no tiene convocatoria.
+1. Escribe una función `calificar(nota)` que devuelva la calificación en texto:
+   - 9 o más: `"Sobresaliente"`
+   - 7 o más: `"Notable"`
+   - 6 o más: `"Bien"`
+   - 5 o más: `"Suficiente"`
+   - menos de 5: `"Insuficiente"`
+   - menor que 0 o mayor que 10: `"Nota no válida"`
+2. Aplica la función, con un bucle, a cada nota de `[10, 8.5, 6.2, 5, 3.4, 11]`.
+3. Escribe `convocatoria(mes)` usando `switch`: el mes 3 es la 1ª evaluación parcial, el 6 la convocatoria ordinaria, el 9 la extraordinaria, y cualquier otro mes no tiene convocatoria. Pruébala con los meses 6, 9 y 12.
+4. Recorre otra vez las notas y cuenta los aprobados y los suspensos. El `11` no es una nota válida: sáltalo con `continue` para que no cuente.
+5. En la lista `[4, 7, 10, 6, 10]`, busca la **posición** del primer 10. En cuanto lo encuentres, deja de buscar con `break`.
 
-Después cuenta aprobados y suspensos recorriendo las notas, **saltándote la nota inválida con `continue`**, y localiza con `break` la posición del primer 10 en `[4, 7, 10, 6, 10]`.
+> 💡 **Pistas**
+> - El orden de los `if` importa. Si empiezas comprobando `nota >= 5`, un 10 entraría ahí y nunca llegaría a «Sobresaliente». Empieza por la nota más alta.
+> - Las posiciones de un array empiezan en **0**, no en 1.
+
+**Salida esperada**
 
 ```
 10 -> Sobresaliente
@@ -1114,11 +1170,27 @@ Primer 10 en la posición 2
 ---
 
 ### Ejercicio 04 — La lista de clase
-*Capítulo 05*
+*Capítulo 05* · **Practicarás:** añadir, quitar y buscar elementos en un array, y transformarlo sin estropear el original.
 
-Partiendo de `["Ana", "Luis", "Marta"]`: matricula a Pedro y Lucía al final, incorpora a Carlos al principio por traslado y date de baja al primero de la lista, mostrando el array tras cada paso.
+La lista de clase empieza así: `["Ana", "Luis", "Marta"]`. Muestra el array después de cada paso para ver cómo va cambiando.
 
-Comprueba si están matriculadas Marta y Sofía, y en qué posición están Lucía y Sofía. Genera después una lista alfabética **sin destruir el orden de matriculación**, otra en mayúsculas para el acta, los nombres de más de 4 letras, y una única cadena separada por comas.
+**Pasos**
+
+1. Matricula a Pedro y a Lucía **al final** de la lista.
+2. Carlos llega trasladado de otro centro: añádelo **al principio**.
+3. Da de baja al **primero** de la lista y muestra quién se ha ido.
+4. Comprueba si están matriculadas Marta y Sofía. El resultado será `true` o `false`.
+5. Averigua en qué posición están Lucía y Sofía. Si alguien no está en la lista, el resultado es `-1`.
+6. Obtén la lista en orden alfabético **sin cambiar la original**, que debe seguir en orden de matriculación. Muestra las dos para comprobarlo.
+7. Obtén una lista nueva con los nombres en mayúsculas, para el acta.
+8. Obtén solo los nombres de más de 4 letras.
+9. Junta todos los nombres en un único texto, separados por comas.
+
+> 💡 **Pistas**
+> - Métodos que te harán falta: `push`, `unshift`, `shift`, `includes`, `indexOf`, `sort`, `map`, `filter` y `join`.
+> - Cuidado en el paso 6: `sort()` **modifica** el array sobre el que lo llamas. Ordena una copia: `[...clase].sort()`.
+
+**Salida esperada**
 
 ```
 Inicial      -> [ 'Ana', 'Luis', 'Marta' ]
@@ -1139,11 +1211,27 @@ Listado: Ana, Luis, Marta, Pedro, Lucía
 ---
 
 ### Ejercicio 05 — Estadísticas de la evaluación
-*Capítulo 05*
+*Capítulo 05* · **Practicarás:** `map`, `filter`, `reduce` y ordenar números.
 
-Con las notas `[7, 4.5, 9.25, 6, 3, 8, 10, 5.5]`, calcula la media, la máxima y la mínima, el número de aprobados y suspensos y el porcentaje de aprobados.
+Estas son las notas de la evaluación: `[7, 4.5, 9.25, 6, 3, 8, 10, 5.5]`.
 
-Genera después un array con todas las notas subidas 0,5 puntos **sin pasar de 10 y sin modificar el original**. Cuenta cuántas notas hay de cada calificación usando un único `reduce` con un objeto como acumulador. Termina obteniendo las tres mejores notas.
+**Pasos**
+
+1. Calcula la media del grupo (con dos decimales), la nota máxima y la mínima.
+2. Cuenta los aprobados (5 o más) y los suspensos, y calcula el porcentaje de aprobados con un decimal.
+3. Crea un array **nuevo** con todas las notas subidas medio punto, sin que ninguna pase de 10. Muestra también el original para comprobar que no ha cambiado.
+4. Cuenta cuántas notas hay de cada tipo (sobresaliente: 9 o más; notable: 7 o más; suficiente: 5 o más; insuficiente: el resto) usando **un único** `reduce`. El acumulador es un objeto que empieza así:
+   ```ts
+   { sobresaliente: 0, notable: 0, suficiente: 0, insuficiente: 0 }
+   ```
+5. Obtén las tres mejores notas.
+
+> 💡 **Pistas**
+> - `Math.max(...notas)` recibe el array «desplegado» con los tres puntos.
+> - `Math.min(nota + 0.5, 10)` sube la nota sin pasar de 10.
+> - `sort()` ordena como si fueran textos, así que con números se equivoca. Para ordenar de mayor a menor usa `sort((a, b) => b - a)`, y hazlo sobre una copia.
+
+**Salida esperada**
 
 ```
 Media del grupo: 6.66
@@ -1166,11 +1254,27 @@ Top 3 -> [ 10, 9.25, 8 ]
 ---
 
 ### Ejercicio 06 — Fichas con tuplas
-*Capítulo 06*
+*Capítulo 06* · **Practicarás:** tuplas, desestructuración y devolver varios valores desde una función.
 
-Define `type Ficha = [nombre: string, nota: number]` y crea las fichas de Ana (8.5), Luis (4), Marta (9.25) y Pedro (6). Recórrelas desestructurando y marca cada una como APTO o NO APTO, alineando los nombres a 6 caracteres.
+Una tupla es un array con un número fijo de elementos en el que cada posición tiene su propio tipo. Aquí la usarás como ficha de un alumno: `[nombre, nota]`.
 
-Escribe `resumen(fichas)` que devuelva **de una sola vez** la media, los aprobados y los suspensos. Añade después un tipo con la recuperación como tercer elemento opcional y calcula la nota definitiva. Cierra intercambiando dos variables con una tupla, sin variable auxiliar.
+**Pasos**
+
+1. Define `type Ficha = [nombre: string, nota: number]` y crea un array con las fichas de Ana (8.5), Luis (4), Marta (9.25) y Pedro (6).
+2. Recorre las fichas y muestra el nombre, la nota y `APTO` o `NO APTO`. Desestructura cada ficha directamente en el parámetro: `([nombre, nota]) => ...`. Alinea los nombres rellenándolos hasta 6 caracteres.
+3. Escribe una función `resumen(fichas)` que devuelva **en una tupla** la media, el número de aprobados y el de suspensos. Recoge el resultado en tres variables a la vez:
+   ```ts
+   const [media, aprobados, suspensos] = resumen(fichas);
+   ```
+4. Define otra tupla, `FichaConRecuperacion`, con un tercer elemento **opcional**: la nota de la recuperación. Para Luis (4, recuperación 6.5) y Ana (8.5, sin recuperación), muestra la nota ordinaria y la definitiva. La definitiva es la de la recuperación si existe y, si no, la ordinaria.
+5. Intercambia los valores de dos variables (`"Ana"` y `"Luis"`) en una sola línea, sin usar una variable auxiliar.
+
+> 💡 **Pistas**
+> - `"Ana".padEnd(6)` rellena el texto con espacios hasta los 6 caracteres.
+> - Si solo te interesa la nota de una ficha, puedes saltarte la primera posición dejando un hueco: `([, nota]) => ...`.
+> - Para el paso 5: `[a, b] = [b, a]`.
+
+**Salida esperada**
 
 ```
 Ana    8.5 -> APTO
@@ -2196,16 +2300,33 @@ Este es el mecanismo que permite a Angular tratar de forma uniforme componentes 
 
 > 📁 Soluciones comentadas: [`src/ejercicios/`](src/ejercicios/README.md)
 
-Segundo bloque, capítulos 07-11. Aquí el hilo conductor deja de ser una lista de datos sueltos y pasa a ser un **modelo**: tipos propios, contratos y clases.
+Segundo bloque, capítulos 07 a 11. Hasta ahora has trabajado con datos sueltos: números, textos y listas. En este bloque empiezas a **crear tus propios tipos** para describir cómo es un alumno, un expediente o una matrícula, que es justo lo que harás en cualquier aplicación Angular.
+
+Sigue trabajando igual que en el bloque anterior: un fichero por ejercicio dentro de `src/`, terminado en `export {};`.
 
 ---
 
 ### Ejercicio 07 — Funciones del cuaderno
-*Capítulo 07*
+*Capítulo 07* · **Practicarás:** parámetros por defecto, opcionales y *rest* (`...`), uniones de tipos y *arrow functions*.
 
-Escribe `notaFinal(practica, examen, pesoExamen)` donde el peso del examen sea 0.6 **por defecto**, y pruébala con el peso por defecto y con 0.4.
+**Pasos**
 
-Añade `actaAlumno(nombre, nota, observaciones?)` con un tercer parámetro **opcional**, y explica en un comentario la diferencia entre opcional y por defecto. Escribe `mediaDe(...notas)` que acepte cualquier número de notas y devuelva 0 si no recibe ninguna. Termina con `buscarAlumno(id)` que acepte `number | string` y actúe distinto según el tipo, y con una arrow function de una línea que diga si una nota aprueba.
+1. Escribe `notaFinal(practica, examen, pesoExamen)`, que calcule:
+   ```ts
+   practica * (1 - pesoExamen) + examen * pesoExamen
+   ```
+   El peso del examen debe valer `0.6` **por defecto**. Pruébala con una práctica de 8 y un examen de 5, primero sin indicar el peso y después con un peso de `0.4`.
+2. Escribe `actaAlumno(nombre, nota, observaciones?)`. El tercer parámetro es **opcional**: si llega, se añade entre paréntesis y, si no, no aparece. Pruébala con Ana (8.5) y con Luis (4, `"debe recuperar"`).
+3. En un comentario, explica con tus palabras la diferencia entre un parámetro opcional (`?`) y uno con valor por defecto (`= 0.6`).
+4. Escribe `mediaDe(...notas)`, que acepte **cualquier cantidad** de notas y devuelva su media, o `0` si no recibe ninguna. Pruébala con `(7, 8, 9)`, con `(7, 8, 9, 4, 10)` y sin argumentos.
+5. Escribe `buscarAlumno(identificador)`, que acepte un número **o** un texto. Con un número busca por expediente; con un texto busca por nombre, escrito en mayúsculas. Pruébala con `1024` y con `"ana"`.
+6. Termina con una *arrow function* de una sola línea, `estaAprobado`, que diga si una nota aprueba. Pruébala con 5 y con 4.9.
+
+> 💡 **Pistas**
+> - El tipo de `identificador` en el paso 5 es una unión: `number | string`.
+> - Antes de usar `toUpperCase()`, comprueba con `typeof` que el identificador es un texto. Si no, TypeScript no te dejará, porque podría ser un número.
+
+**Salida esperada**
 
 ```
 Peso por defecto -> 6.20
@@ -2223,11 +2344,31 @@ Buscando por nombre "ANA"
 ---
 
 ### Ejercicio 08 — Criterios intercambiables
-*Capítulo 07*
+*Capítulo 07* · **Practicarás:** pasar funciones como parámetro (*callbacks*) y entender por qué se usan *arrow functions*.
 
-En vez de escribir una función por cada filtro, escribe `seleccionar(lista, criterio)` donde `criterio` sea una **función que se pasa como parámetro**, tipada como `(f: Ficha) => boolean`.
+En vez de escribir una función para los aprobados, otra para los excelentes y otra para los que deben recuperar, escribirás **una sola** función de filtrado y le pasarás el criterio como parámetro.
 
-Úsala para obtener aprobados (≥5) y excelentes (≥9) sobre el grupo de Ana (8.5), Luis (4), Marta (9.25) y Pedro (6). Guarda un criterio en una constante para reutilizarlo. Añade después una versión cuya callback reciba también la posición. Cierra con una clase que cuente aprobados desde dentro, para comprobar por qué la callback **debe ser una arrow function**.
+En este ejercicio la ficha es un **objeto**, no una tupla:
+
+```ts
+type Ficha = { nombre: string; nota: number };
+```
+
+El grupo lo forman Ana (8.5), Luis (4), Marta (9.25) y Pedro (6).
+
+**Pasos**
+
+1. Escribe `seleccionar(lista, criterio)`. El `criterio` es una función que recibe una ficha y devuelve `true` o `false`; su tipo se escribe así: `(f: Ficha) => boolean`.
+2. Úsala para obtener los nombres de los aprobados (nota de 5 o más) y de los excelentes (9 o más).
+3. Guarda un criterio en una constante, `necesitaRecuperar` (nota menor que 5), y pásaselo a `seleccionar`.
+4. Escribe `conPosicion(lista, accion)`, donde la función `accion` recibe la ficha **y su posición**. Úsala para mostrar el listado numerado (1º, 2º…).
+5. Crea una clase `Evaluador` con un contador privado `aprobados` y un método `contar(lista)` que lo vaya aumentando dentro de un `forEach`. Escribe la función del `forEach` como *arrow function* y comprueba que el contador funciona.
+
+> 💡 **Pistas**
+> - `filter` ya recibe un criterio con la forma que necesitas: puedes pasárselo tal cual.
+> - Sobre el paso 5: cámbiala por una función normal, `function (f) { ... }`, y mira qué dice el compilador. Dentro de una `function`, `this` deja de ser el `Evaluador`; dentro de una *arrow function*, sigue siéndolo. Por eso en Angular las *callbacks* se escriben casi siempre con flecha.
+
+**Salida esperada**
 
 ```
 Aprobados  -> [ 'Ana', 'Marta', 'Pedro' ]
@@ -2243,11 +2384,28 @@ Aprobados contados desde la clase -> 3
 ---
 
 ### Ejercicio 09 — Modelar el alumno con `type`
-*Capítulo 08*
+*Capítulo 08* · **Practicarás:** `type`, uniones de literales, propiedades opcionales y `readonly`, intersecciones y *template literal types*.
 
-Define `Ciclo` como unión de literales (`"DAM" | "DAW" | "ASIR"`) y `Turno` como `"mañana" | "tarde"`. Con ellos, un `type Alumno` con expediente `readonly`, nombre, ciclo, turno y email opcional.
+**Pasos**
 
-Crea dos alumnos, uno con email y otro sin él, y comprueba en comentarios qué rechaza el compilador. Añade con una **intersección** un tipo de alumno becado. Escribe una función que filtre por ciclo y pruébala con los tres valores. Termina con un `type CodigoGrupo` que, mediante *template literal types*, solo admita combinaciones válidas de ciclo y curso (1 o 2).
+1. Define dos tipos que solo admitan unos valores concretos:
+   ```ts
+   type Ciclo = "DAM" | "DAW" | "ASIR";
+   type Turno = "mañana" | "tarde";
+   ```
+2. Define `type Alumno` con: `expediente` (un número que no se pueda cambiar: `readonly`), `nombre`, `ciclo` (de tipo `Ciclo`), `turno` (de tipo `Turno`) y `email`, que es opcional.
+3. Crea dos alumnos: Ana Serrano (expediente 1001, DAM, tarde, `ana@ies.es`) y Luis Gil (1002, DAW, mañana), este **sin email**.
+4. Añade después el email de Luis (`luis@ies.es`) y muestra los dos alumnos.
+5. Intenta cambiar el expediente de Luis y ponerle a Ana el ciclo `"DAM2"`. Deja esas dos líneas **comentadas**, indicando el error que da el compilador.
+6. Crea el tipo `AlumnoBecado` uniendo con `&` el tipo `Alumno` y un tipo con los datos de la beca (`importe` y `curso`). Crea a Marta Ruiz (1003, DAM, tarde) con una beca de 1200 € del curso 2024/25.
+7. Escribe una función que reciba un ciclo y devuelva los nombres de los alumnos de ese ciclo. Pruébala con los tres ciclos.
+8. Define `type CodigoGrupo` para que solo admita un ciclo seguido de un 1 o un 2 (`"DAM1"`, `"ASIR2"`…). Muestra la lista `["DAM1", "DAM2", "DAW1", "ASIR2"]` y comprueba que `"DAM3"` da error.
+
+> 💡 **Pistas**
+> - Un *template literal type* se escribe como una plantilla de texto, pero con tipos dentro de `${ }`. Por ejemplo, `` `${"A" | "B"}-${1 | 2}` `` solo admite `"A-1"`, `"A-2"`, `"B-1"` y `"B-2"`.
+> - Para mostrar «sin email» cuando no haya email, usa `??`.
+
+**Salida esperada**
 
 ```
 Ana Serrano — DAM (tarde) — ana@ies.es
@@ -2262,11 +2420,32 @@ Códigos válidos -> [ 'DAM1', 'DAM2', 'DAW1', 'ASIR2' ]
 ---
 
 ### Ejercicio 10 — Validar lo que llega de fuera
-*Capítulo 08*
+*Capítulo 08* · **Practicarás:** comprobar datos de tipo `unknown` con *type guards* y distinguir tipos con `in`.
 
-Tienes tres respuestas simuladas de una API, tipadas como `unknown[]`: una correcta, otra con el expediente como texto y otra a la que le falta el expediente y trae un ciclo inexistente.
+Los datos que llegan de una API no son de fiar: les pueden faltar campos o traerlos con el tipo equivocado. Por eso se reciben como `unknown` y hay que comprobarlos antes de usarlos.
 
-Escribe un **type guard** `esAlumno(dato): dato is Alumno` que compruebe de verdad la estructura, apoyándote en otro guard `esCiclo`. Recorre las respuestas importando solo las válidas. Termina con una función que distinga entre un matriculado y un preinscrito usando **narrowing con `in`**.
+Parte de estas tres respuestas simuladas, guardadas en un array de tipo `unknown[]`:
+
+```ts
+{ expediente: 1001, nombre: "Ana Serrano", ciclo: "DAM" }   // correcta
+{ expediente: "1002", nombre: "Luis Gil", ciclo: "DAW" }    // el expediente es un texto
+{ nombre: "Marta Ruiz", ciclo: "MECATRONICA" }              // sin expediente y con un ciclo que no existe
+```
+
+**Pasos**
+
+1. Escribe `esCiclo(valor)`, que diga si un valor es `"DAM"`, `"DAW"` o `"ASIR"`. Su tipo de retorno debe ser `valor is Ciclo`.
+2. Escribe `esAlumno(dato)`, con tipo de retorno `dato is Alumno`. Debe comprobar **de verdad** que el dato es un objeto, que no es `null`, que tiene las tres propiedades y que cada una es del tipo correcto. Para el ciclo, usa `esCiclo`.
+3. Recorre las respuestas: guarda las válidas en un array y muestra las descartadas. Termina indicando cuántas se han importado.
+4. Define dos tipos: `Matriculado` (nombre y expediente) y `Preinscrito` (nombre y fecha de solicitud). Escribe una función que acepte cualquiera de los dos y muestre un mensaje distinto según cuál sea.
+
+> 💡 **Pistas**
+> - Un *type guard* es una función que devuelve `true` o `false`, pero cuyo tipo de retorno es `dato is Alumno`. Cuando devuelve `true`, dentro del `if` TypeScript ya trata el dato como un `Alumno` y te deja usar sus propiedades.
+> - No uses `dato as Alumno`: eso solo silencia al compilador, no comprueba nada.
+> - Para distinguir los dos tipos del paso 4: `if ("expediente" in persona)`.
+> - Para mostrar un objeto descartado como texto: `JSON.stringify(dato)`.
+
+**Salida esperada**
 
 ```
 ✅ Válido: Ana Serrano (DAM)
@@ -2280,11 +2459,24 @@ Sofía: preinscrito el 2025-06-20
 ---
 
 ### Ejercicio 11 — Estados de la matrícula
-*Capítulo 09*
+*Capítulo 09* · **Practicarás:** `enum`, uniones de literales y objetos `as const`, y por qué conviene evitar los `enum` numéricos.
 
-Modela el estado de una matrícula (preinscrita, confirmada, anulada) de las **tres formas**: `enum` de cadenas con un `switch` que devuelva su mensaje, unión de literales, y objeto `as const` con su tipo derivado.
+Una matrícula puede estar preinscrita, confirmada o anulada. Vas a representar esos tres estados de tres formas distintas para compararlas.
 
-Después demuestra el peligro del `enum` numérico: guarda el valor `1`, inserta un estado nuevo al principio y comprueba que ese mismo `1` pasa a significar otra cosa sin que el compilador avise. Cierra contando matrículas por estado con un `Record`.
+**Pasos**
+
+1. **Con un `enum` de textos.** Crea `EstadoMatricula` con los valores `"PREINSCRITA"`, `"CONFIRMADA"` y `"ANULADA"`. Escribe una función con `switch` que devuelva un mensaje para cada estado (por ejemplo, `"Matrícula en vigor"` para la confirmada) y pruébala. Muestra también todos sus valores con `Object.values()`.
+2. **Con una unión de literales.** Define `type Estado = "PREINSCRITA" | "CONFIRMADA" | "ANULADA"`, crea una variable de ese tipo y muéstrala.
+3. **Con un objeto `as const`.** Crea un objeto `ESTADOS` con los tres valores, termínalo con `as const` y obtén de él un tipo. Muestra uno de sus valores y todos con `Object.values()`.
+4. **El peligro del `enum` numérico.** Crea un `enum` con Preinscrita, Confirmada y Anulada **sin darles valor**: TypeScript los numera solo como 0, 1 y 2. Guarda el número `1`, como si viniera de una base de datos, y muestra a qué estado corresponde. Crea después una segunda versión del `enum` con un estado nuevo, `Borrador`, **al principio**, y comprueba a qué estado corresponde ahora ese mismo `1`. ¿Te avisa el compilador?
+5. Con la lista `["CONFIRMADA", "PREINSCRITA", "CONFIRMADA", "ANULADA", "CONFIRMADA"]`, cuenta cuántas matrículas hay de cada estado. Guarda el recuento en un `Record<Estado, number>`.
+
+> 💡 **Pistas**
+> - En un `enum` numérico, `EstadoV1[1]` devuelve el **nombre** que corresponde al número 1.
+> - Sacar el tipo del objeto `as const` es la parte más rara del ejercicio. Se hace así:
+>   `type EstadoConst = (typeof ESTADOS)[keyof typeof ESTADOS];`
+
+**Salida esperada**
 
 ```
 enum -> CONFIRMADA: Matrícula en vigor
@@ -2300,11 +2492,22 @@ Recuento -> { PREINSCRITA: 1, CONFIRMADA: 3, ANULADA: 1 }
 ---
 
 ### Ejercicio 12 — Contratos con interfaces
-*Capítulo 10*
+*Capítulo 10* · **Practicarás:** `interface`, herencia con `extends`, métodos en interfaces, *index signatures* y *declaration merging*.
 
-Define `Persona` con id `readonly`, nombre y email opcional. Extiéndela para `Alumno` y `Docente`, y extiende `Docente` para `Tutor`: tres niveles de herencia de interfaces.
+**Pasos**
 
-Añade una interfaz `Calculadora` con una propiedad de tipo función y un método, e impleméntala comprobando que **no hace falta repetir los tipos**. Añade un *index signature* para las notas por módulo y accede a ellas como exige `noPropertyAccessFromIndexSignature`. Termina demostrando el *declaration merging* con dos interfaces del mismo nombre.
+1. Define la interfaz `Persona` con `id` (que no se pueda cambiar: `readonly`), `nombre` y `email`, que es opcional.
+2. Amplíala con `extends`: `Alumno` añade `expediente` y `ciclo`; `Docente` añade `departamento`. Después amplía `Docente` para crear `Tutor`, que añade `grupo`. Son tres niveles: `Persona` → `Docente` → `Tutor`.
+3. Crea una alumna (Ana Serrano, expediente 1001, DAM) y un tutor (Carlos Mendoza, departamento de Informática, grupo DAM2), y muéstralos.
+4. Define la interfaz `Calculadora` con un método `media(notas)` y una propiedad `aprobado` que sea una función. Crea un objeto que la cumpla **sin volver a escribir los tipos** de los parámetros: TypeScript los deduce de la interfaz. Prueba `media([7, 8, 9])` y `aprobado(4.5)`.
+5. Define `NotasPorModulo` con un *index signature*, es decir, con claves de texto que no se conocen de antemano y valores numéricos. Guarda estas notas: Programación 8.5, Bases de Datos 7 y Entornos de Desarrollo 9. Muestra la de Programación y después recórrelas todas con `for...in`.
+6. Declara **dos veces** una interfaz `Matricula`: una con `curso` y otra con `confirmada`. Comprueba que TypeScript las une en una sola y que un objeto de ese tipo necesita las dos propiedades.
+
+> 💡 **Pistas**
+> - En el paso 5, en este proyecto (y en Angular) hay que leer las notas con corchetes, `notas["Programación"]`, y no con punto. Se explica en [Sobre la configuración](#sobre-la-configuración).
+> - En el paso 6 usa un nombre nuevo, como `Matricula`, y no `Alumno`: la fusión afecta a todo el fichero y rompería el objeto que ya creaste en el paso 3.
+
+**Salida esperada**
 
 ```
 Alumna: Ana Serrano (DAM), expediente 1001
@@ -2321,11 +2524,27 @@ Matrícula 2024/25 confirmada: true
 ---
 
 ### Ejercicio 13 — El expediente como clase
-*Capítulo 11*
+*Capítulo 11* · **Practicarás:** clases, `private` y `readonly`, el atajo del constructor, miembros `static` y *getters*.
 
-Crea la clase `Expediente` con número `readonly`, nombre y un array de notas **privado**. Usa el atajo del constructor. Añade un contador `static` de expedientes creados y un método estático `registrar(nombre)` que genere el número automáticamente.
+El expediente de un alumno guarda sus notas. Nadie debería poder meter un 15 ni tocar las notas desde fuera de la clase.
 
-La única vía para añadir notas debe **validar el rango 0-10** y lanzar un error si no lo cumple. Añade getters para la media, la calificación y el historial; el historial debe devolver una **copia**, de modo que modificarla no afecte al expediente. Comprueba las dos protecciones al final.
+**Pasos**
+
+1. Crea la clase `Expediente` con un `numero` (público y `readonly`), un `nombre` (público) y un array de `notas` **privado**. Declara las tres propiedades directamente en los parámetros del constructor, con el atajo que viste en el capítulo 11.
+2. Añade un contador `static` de expedientes creados y un método `static registrar(nombre)` que cree un expediente con número automático: 1001, 1002, 1003… Añade también un *getter* estático, `total`, para consultar cuántos se han creado.
+3. Añade `anadirNota(nota)`, que será la **única** forma de añadir notas. Si la nota no está entre 0 y 10, debe lanzar un error: `throw new Error(...)`.
+4. Añade tres *getters*:
+   - `media`: la media de sus notas, o 0 si no tiene ninguna.
+   - `calificacion`: Sobresaliente (9 o más), Notable (7 o más), Suficiente (5 o más) o Insuficiente.
+   - `historial`: las notas, pero devolviendo una **copia** del array, no el original.
+5. Registra a Ana Serrano con las notas 8, 9.5 y 7, y a Luis Gil con un 4. Muestra sus datos y cuántos expedientes se han creado.
+6. Comprueba las dos protecciones:
+   - Intenta añadirle un 15 a Ana y captura el error con `try/catch`.
+   - Coge el `historial` de Ana, añádele un 10 y comprueba que el expediente real sigue teniendo 3 notas.
+
+> 💡 **Pista:** los *getters* se usan sin paréntesis, como si fueran propiedades: `ana.media`, no `ana.media()`.
+
+**Salida esperada**
 
 ```
 Expediente 1001 — Ana Serrano
@@ -2340,11 +2559,24 @@ Historial real tras tocar la copia: 3 notas
 ---
 
 ### Ejercicio 14 — Jerarquía del personal
-*Capítulo 11*
+*Capítulo 11* · **Practicarás:** clases abstractas, herencia, `override`, `super` y polimorfismo.
 
-Crea la clase **abstracta** `MiembroComunidad` con id y nombre, un getter abstracto `rol`, un método abstracto `horasSemanales()` y un método concreto `presentarse()` que use los dos anteriores.
+En el centro hay alumnos, docentes y tutores. Todos se presentan de la misma forma, pero cada uno calcula sus horas semanales a su manera.
 
-Deriva `Alumno` (4 h por módulo) y `Docente` (18 h más 2 por grupo), y de `Docente` deriva `Tutor`, que añade 3 horas llamando a `super.horasSemanales()`. Mete los tres en un array del tipo base y comprueba el **polimorfismo**: cada uno ejecuta su propia versión. Suma las horas totales y cuenta los docentes con `instanceof`.
+**Pasos**
+
+1. Crea la clase **abstracta** `MiembroComunidad` con `id` y `nombre`. Declara un *getter* abstracto `rol` y un método abstracto `horasSemanales()`: solo su cabecera, sin cuerpo. Añade un método normal, `presentarse()`, que devuelva `"Nombre (rol) — X h/semana"` usando los dos anteriores.
+2. Crea la clase hija `Alumno`. Recibe también el número de módulos y hace 4 horas por módulo.
+3. Crea la clase hija `Docente`. Recibe también el número de grupos y hace 18 horas más 2 por grupo.
+4. Crea `Tutor` como hija de `Docente`. Recibe también el grupo que tutoriza. Su rol es `"Tutor de "` seguido del grupo, y hace las horas de un docente **más 3**. Calcula las del docente con `super.horasSemanales()`, sin repetir la fórmula.
+5. Mete en un array de tipo `MiembroComunidad[]` a Ana Serrano (alumna, 5 módulos), Marta Ruiz (docente, 3 grupos) y Carlos Mendoza (tutor de DAM2, 3 grupos). Recórrelo llamando a `presentarse()`. Cada uno usará **su propia** versión de los métodos: eso es el polimorfismo.
+6. Suma las horas de todos y cuenta cuántos son docentes con `instanceof`. Los tutores también cuentan, porque también son docentes.
+
+> 💡 **Pistas**
+> - En este proyecto, al reescribir un método del padre hay que poner `override` delante.
+> - En el constructor de una clase hija hay que llamar a `super(...)` antes de usar `this`.
+
+**Salida esperada**
 
 ```
 Ana Serrano (Alumno) — 20 h/semana
@@ -3287,16 +3519,36 @@ En el día a día **no vas a escribir decoradores**, pero sí a usarlos continua
 
 > 📁 Soluciones comentadas: [`src/ejercicios/`](src/ejercicios/README.md)
 
-Último bloque, capítulos 12-16. Son los cinco ejercicios cuyo código se parece ya, estructuralmente, al de un proyecto Angular.
+Último bloque, capítulos 12 a 16. Son los ejercicios más largos, y su código ya se parece mucho al de un proyecto Angular real: repositorios genéricos, modelos derivados, servicios repartidos en ficheros, peticiones asíncronas y decoradores.
 
 ---
 
 ### Ejercicio 15 — Un repositorio para cualquier entidad
-*Capítulo 12*
+*Capítulo 12* · **Practicarás:** genéricos, restricciones con `extends` y `keyof`.
 
-Escribe una clase genérica `Repositorio<T>` restringida a tipos que tengan `id: number`, apoyada internamente en un `Map<number, T>`. Debe ofrecer `guardar`, `porId` (que devuelva `T | undefined`), `todos`, `borrar` (que devuelva si borró algo), un getter `cantidad` y un `buscar(criterio)` cuya condición la ponga quien llama.
+Una aplicación tiene muchos tipos de datos (alumnos, módulos, profesores…) y todos necesitan lo mismo: guardarlos, buscarlos y borrarlos. En vez de escribir una clase para cada uno, escribirás **una sola** que sirva para todos.
 
-Úsala con **dos entidades distintas**, `Alumno` y `Modulo`, sin escribir dos clases. Termina con una función genérica `extraer(items, clave)` que use `keyof` para que el tipo del resultado cambie según la clave pedida.
+**Pasos**
+
+1. Define dos interfaces: `Alumno` (`id`, `nombre` y `ciclo`, que puede ser `"DAM"` o `"DAW"`) y `Modulo` (`id`, `titulo` y `horas`).
+2. Crea la clase genérica `Repositorio<T>`. Haz que solo acepte tipos que tengan un `id` numérico y guarda los datos internamente en un `Map<number, T>`.
+3. Añádele estos métodos:
+   - `guardar(item)`
+   - `porId(id)`: devuelve el elemento, o `undefined` si no existe.
+   - `todos()`: devuelve un array con todos los elementos.
+   - `buscar(criterio)`: el criterio es una función que pone quien llama, como en el ejercicio 08.
+   - `borrar(id)`: devuelve `true` si ha borrado algo y `false` si no.
+   - Un *getter* `cantidad`.
+4. Crea un repositorio de alumnos con Ana Serrano (id 1, DAM), Luis Gil (2, DAW) y Marta Ruiz (3, DAM), y otro de módulos con Programación (id 10, 256 h) y Bases de Datos (11, 192 h). Prueba todos los métodos: busca el alumno 2, los alumnos de DAM y los módulos de más de 200 horas, muestra cuántos hay de cada uno y borra los ids 3 y 9.
+5. Escribe una función genérica `extraer(items, clave)` que devuelva un array con el valor de esa propiedad en cada elemento. Con `"nombre"` debe devolver un `string[]` y con `"horas"`, un `number[]`. Además, solo debe aceptar claves que existan en el tipo.
+
+> 💡 **Pistas**
+> - La restricción del paso 2 se escribe `class Repositorio<T extends { id: number }>`. Sin ella, TypeScript no te dejaría usar `item.id` dentro de la clase.
+> - La cabecera de `extraer` es lo más difícil del ejercicio:
+>   `function extraer<T, K extends keyof T>(items: T[], clave: K): T[K][]`
+>   `K extends keyof T` significa «K tiene que ser una de las claves de T», y `T[K]` es «el tipo de esa propiedad».
+
+**Salida esperada**
 
 ```
 Alumno 2 -> { id: 2, nombre: 'Luis Gil', ciclo: 'DAW' }
@@ -3313,11 +3565,44 @@ Horas   -> [ 256, 192 ]
 ---
 
 ### Ejercicio 16 — Un modelo, muchas vistas
-*Capítulo 13*
+*Capítulo 13* · **Practicarás:** los *utility types* `Omit`, `Pick`, `Partial`, `Record` y `ReturnType`.
 
-Parte de una única interfaz `Alumno` con id, nombre, email, password, ciclo y activo. **Sin declarar ninguna interfaz más**, deriva con utility types: lo que se envía al crear (sin id), lo que devuelve la API (sin password), la fila del listado (solo id y nombre) y un formulario de edición (id obligatorio, el resto opcional, sin password).
+Un mismo alumno se usa de formas distintas: al darlo de alta todavía no tiene `id`, al enviarlo al navegador no debe llevar la contraseña, y en un listado solo hacen falta dos campos. En vez de escribir una interfaz para cada caso, las **sacarás todas** de una sola.
 
-Añade una función de actualización parcial, una tabla de permisos por rol con `Record` y un agrupamiento por ciclo. Termina usando `ReturnType` para nombrar lo que ya devuelve una función, sin repetir su estructura.
+Parte de esta interfaz y de este alumno:
+
+```ts
+interface Alumno {
+  id: number;
+  nombre: string;
+  email: string;
+  password: string;
+  ciclo: "DAM" | "DAW" | "ASIR";
+  activo: boolean;
+}
+```
+
+Ana Serrano: id 1, `ana@ies.es`, ciclo DAM, activa. Inventa tú la contraseña.
+
+**No declares ninguna interfaz más.** Todos los tipos nuevos se obtienen a partir de `Alumno`.
+
+**Pasos**
+
+1. `NuevoAlumno`: lo que se envía al crear un alumno. Lleva todo **menos el `id`**, porque lo genera el servidor. Crea con él a Luis Gil (`luis@ies.es`, DAW, activo).
+2. `AlumnoPublico`: lo que devuelve la API. Lleva todo **menos la contraseña**. Escribe una función que convierta un `Alumno` en un `AlumnoPublico` y pruébala con Ana.
+3. `FilaListado`: solo `id` y `nombre`. Crea un listado con Ana y Luis.
+4. Escribe `actualizar(original, cambios)`, donde `cambios` puede traer **solo algunos** de los campos. Úsala para cambiar el email de Ana a `ana.serrano@ies.es` y desactivarla.
+5. Con `Record`, crea una tabla de permisos para tres roles: `alumno` (`ver-notas`), `docente` (`ver-notas` y `poner-notas`) y `secretaria` (`ver-notas`, `matricular` y `anular`). Muestra los permisos del docente.
+6. Agrupa por ciclo los nombres de Ana y Luis, en un `Record` cuyas claves sean los tres ciclos.
+7. Escribe `generarCredenciales(alumno)`, que devuelva un objeto con el `usuario` (lo que va antes de la `@` del email) y los días que tarda en caducar (`expira: 30`). Obtén el tipo de ese objeto con `ReturnType`, sin escribirlo a mano.
+8. `FormularioEdicion`: el `id` es obligatorio, el resto de campos son opcionales y no puede llevar contraseña. Crea uno que solo cambie el ciclo de Ana a `"ASIR"`.
+
+> 💡 **Pistas**
+> - Para quitar un campo: `Omit<Alumno, "id">`. Para quedarte con algunos: `Pick<Alumno, "id" | "nombre">`. Para hacerlos todos opcionales: `Partial<Alumno>`.
+> - En el paso 2, la desestructuración separa la contraseña del resto: `const { password, ...resto } = alumno;`
+> - El paso 8 combina varios: `Pick`, `Partial`, `Omit` y `&`.
+
+**Salida esperada**
 
 ```
 Alta -> Luis Gil DAW
@@ -3339,24 +3624,38 @@ Formulario -> { id: 1, ciclo: 'ASIR' }
 ---
 
 ### Ejercicio 17 — Repartir el código en módulos
-*Capítulo 14*
+*Capítulo 14* · **Practicarás:** `import` y `export`, `import type`, *barrel files* y la organización de carpetas de un proyecto Angular.
 
-**Este ejercicio es multi-fichero.** Reorganiza el sistema en la estructura que usa Angular:
+Hasta ahora cada ejercicio cabía en un fichero. En Angular, el código se reparte en carpetas según lo que hace cada parte. **Este ejercicio tiene varios ficheros**. Crea esta estructura:
 
 ```
 ejercicio-17/
-  index.ts                     ← consume todo lo demás
-  modelos/alumno.model.ts      ← tipos y constantes del dominio
+  index.ts                     ← el programa principal: usa todo lo demás
+  modelos/alumno.model.ts      ← tipos y constantes
   servicios/alumno.service.ts  ← la lógica
   servicios/index.ts           ← barrel file
-  utilidades/formato.ts        ← funciones sueltas
+  utilidades/formato.ts        ← funciones de ayuda
 ```
 
-En `formato.ts` deja una función **sin exportar** y compruébalo: no se puede usar desde fuera. En el servicio, importa los tipos con `import type` y los valores con `import` normal. Crea el barrel para poder escribir `from "./servicios"`. Que `listar()` devuelva una copia y demuéstralo intentando colar un alumno desde fuera.
+**Pasos**
+
+1. **`modelos/alumno.model.ts`.** Exporta el tipo `Ciclo`, la interfaz `Alumno` (`id`, `nombre`, `ciclo` y `nota`), la constante `NOTA_APROBADO = 5` y una función `estaAprobado(alumno)`.
+2. **`utilidades/formato.ts`.** Exporta tres funciones:
+   - `capitalizar(texto)`: pone en mayúscula la primera letra del texto y el resto en minúscula.
+   - `conDecimales(n)`: devuelve el número como texto con dos decimales.
+   - `iniciales(nombreCompleto)`: devuelve las iniciales en mayúscula. Apóyate en una función auxiliar `siglas` que **no exportes**, y comprueba que desde otro fichero no se puede importar.
+3. **`servicios/alumno.service.ts`.** Crea la clase `AlumnoService`, con un array privado de alumnos y estos métodos: `alta(nombre, ciclo, nota)`, `listar()`, `porCiclo(ciclo)`, `aprobados()` y `mediaFormateada()`. `listar()` debe devolver una **copia** del array. Importa los tipos con `import type` y el resto con `import` normal.
+4. **`servicios/index.ts`.** Es el *barrel file*: solo contiene `export * from "./alumno.service";`. Gracias a él, desde fuera se puede escribir `from "./servicios"` en vez de la ruta completa.
+5. **`index.ts`.** Importa todo lo anterior y da de alta a `"ana serrano"` (DAM, 8.5), `"luis gil"` (DAW, 4) y `"marta ruiz"` (DAM, 9.25), en minúsculas a propósito. Muestra el listado con sus iniciales y su nombre capitalizado. Importa `iniciales` con otro nombre: `iniciales as siglasDe`.
+6. Por último, añade un alumno al array que devuelve `listar()` y comprueba que el servicio sigue teniendo 3.
+
+Para ejecutarlo, indica el fichero `index.ts`:
 
 ```bash
 npm run play -- src/ejercicios/soluciones/ejercicio-17/index.ts
 ```
+
+**Salida esperada**
 
 ```
 AS Ana serrano — DAM — 8.5
@@ -3369,17 +3668,34 @@ Media del grupo: 7.25
 Tras intentar colar un alumno: el servicio sigue con 3
 ```
 
-> Después ejecuta `npm run build` y abre `build/.../alumno.service.js`: verás que
-> la línea del `import type` **no aparece**, mientras que el `import` normal sí.
+> 🔍 **Para terminar:** ejecuta `npm run build` y abre `build/.../alumno.service.js`. Verás que la línea del `import type` ha **desaparecido**, mientras que el `import` normal sigue ahí: los tipos no existen en el JavaScript final.
 
 ---
 
 ### Ejercicio 18 — Cargar las notas del servidor
-*Capítulo 15*
+*Capítulo 15* · **Practicarás:** promesas, `async` / `await`, errores con `try` / `catch`, peticiones en paralelo y `fetch`.
 
-Simula el servidor con `buscarAlumno(id): Promise<Alumno>` que tarde 120 ms y rechace si el id no es positivo. Consúmela con `async`/`await` y `try/catch`, recordando que **lo capturado es `unknown`**.
+Las peticiones a un servidor tardan, y a veces fallan. Como no tienes un servidor propio, lo simularás con una función que tarda un poco en responder.
 
-Después mide y compara: tres peticiones encadenadas con `await` frente a las mismas tres con `Promise.all`. Añade un caso con `Promise.allSettled` donde una de las tres falle y el programa no se detenga. Termina con un `fetch` real contra `jsonplaceholder.typicode.com`, comprobando `respuesta.ok` a mano.
+**Pasos**
+
+1. Escribe `buscarAlumno(id)`, que devuelva un `Promise<Alumno>`. Pasados 120 ms debe resolver con este objeto:
+   ```ts
+   { id, nombre: `Alumno ${id}`, nota: 5 + (id % 5) }
+   ```
+   Si el `id` es 0 o negativo, en vez de eso debe rechazar con un error.
+2. Con `async` / `await`, busca el alumno 3 y muéstralo. Después busca el `-1` y captura el error con `try` / `catch`.
+3. Mide cuánto tardan tres peticiones (ids 1, 2 y 3) hechas **una detrás de otra**, cada una con su `await`. Mide después cuánto tardan las mismas tres lanzadas **a la vez** con `Promise.all`. Muestra también la media de las tres notas.
+4. Usa `Promise.allSettled` con los ids 1, -5 y 2. La segunda fallará, pero el programa no debe detenerse: muestra el resultado de cada una.
+5. Termina con una petición real con `fetch` a `https://jsonplaceholder.typicode.com/posts/1`. Muestra el `id` y los 30 primeros caracteres del `title`.
+
+> 💡 **Pistas**
+> - Para el retraso del paso 1, usa `setTimeout` dentro de `new Promise((resolve, reject) => { ... })`.
+> - En el `catch`, el error es de tipo `unknown`. Compruébalo con `error instanceof Error` antes de leer `error.message`.
+> - Para medir un tiempo, guarda `Date.now()` antes y réstalo después. Redondea a las centenas.
+> - `fetch` **no** lanza un error si el servidor responde con un 404 o un 500. Tienes que comprobar tú `respuesta.ok`.
+
+**Salida esperada**
 
 ```
 Encontrado -> Alumno 3 con 8
@@ -3394,24 +3710,36 @@ allSettled:
 API -> post 1: sunt aut facere repellat provi…
 ```
 
-> Los tiempos son aproximados y dependen de la máquina. Lo importante es la
-> proporción: el paralelo debe tardar aproximadamente **un tercio** que el secuencial.
-> La última línea necesita conexión a internet.
+> Los tiempos son aproximados y dependen de cada ordenador. Lo importante es la proporción: en paralelo debe tardar aproximadamente **un tercio** que una detrás de otra. La última línea necesita conexión a internet.
 
 ---
 
 ### Ejercicio 19 — Decoradores académicos
-*Capítulo 16*
+*Capítulo 16* · **Practicarás:** decoradores de clase, de método, de propiedad y de parámetro, como los que usa Angular (`@Component`, `@Input`…).
 
-Escribe cuatro decoradores y aplícalos a una clase `Expediente`:
+Un decorador es una función que se «engancha» con `@` a una clase o a una de sus partes y le añade comportamiento sin cambiar su código.
 
-- **De clase**: `@Entidad`, que registre por consola el nombre de la clase al cargarse.
-- **De método**: `@Auditar`, que muestre los argumentos y el valor devuelto envolviendo el método original.
-- **De método con parámetros**: `@Reintentar(3)`, que reintente hasta 3 veces un método que lanza error y devuelva `null` si agota los intentos.
-- **De propiedad**: `@EnRango(0, 10)`, que ignore las asignaciones fuera de rango.
-- **De parámetro**: `@Obligatorio`, que registre qué parámetro lo es.
+**Pasos**
 
-Fíjate en el orden de la salida: los decoradores de clase y parámetro se ejecutan **al cargar el fichero**, antes que cualquier `new`.
+1. Crea una clase `Expediente` con:
+   - una propiedad `nota`;
+   - un método `calificar(nombre, nota)` que guarde la nota y devuelva `"Nombre: APTO"` o `"Nombre: NO APTO"`;
+   - un método `sincronizar()` que lance un error las dos primeras veces que se le llama y funcione a la tercera.
+2. Escribe estos **cinco** decoradores y aplícalos:
+   - `@Entidad`, de **clase**: muestra el nombre de la clase.
+   - `@Auditar`, de **método**, en `calificar`: muestra los argumentos con los que se llama al método y el valor que devuelve. Para conseguirlo, sustituye el método por otro que muestre esa información y llame al original en medio.
+   - `@Reintentar(3)`, de **método con parámetros**, en `sincronizar`: si el método lanza un error, lo vuelve a intentar hasta 3 veces. Si se agotan los intentos, devuelve `null`.
+   - `@EnRango(0, 10)`, de **propiedad**, en `nota`: ignora los valores que estén fuera del rango y avisa por consola.
+   - `@Obligatorio`, de **parámetro**, en el `nombre` de `calificar`: muestra qué parámetro es obligatorio.
+3. Muestra `--- uso ---`, crea un expediente y califica a Ana Serrano (8) y a Luis Gil (4).
+4. Intenta poner un 50 en la `nota` y muestra la nota final.
+5. Llama a `sincronizar()` y muestra lo que devuelve.
+
+> 💡 **Pista:** cada tipo de decorador recibe parámetros distintos. Repasa en el capítulo 16 la forma de cada uno antes de empezar.
+
+Fíjate en el orden de la salida: `[Obligatorio]` y `[Entidad]` aparecen **antes** de `--- uso ---`. Los decoradores se ejecutan cuando se define la clase, es decir, al cargar el fichero, y no al hacer `new`.
+
+**Salida esperada**
 
 ```
 [Obligatorio] parámetro 0 de calificar() es obligatorio
