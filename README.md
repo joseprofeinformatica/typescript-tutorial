@@ -2487,23 +2487,34 @@ Matrícula 2024/25 confirmada: true
 ### Ejercicio 12 — El expediente como clase
 *Capítulo 11* · **Practicarás:** clases, `private` y `readonly`, el atajo del constructor, miembros `static` y *getters*.
 
-El expediente de un alumno guarda sus notas. Nadie debería poder meter un 15 ni tocar las notas desde fuera de la clase.
+El expediente de un alumno guarda sus notas. Vas a escribir una clase que las proteja: nadie podrá meter una nota fuera de rango ni modificar las notas desde fuera de la clase.
 
 **Pasos**
 
-1. Crea la clase `Expediente` con un `numero` (público y `readonly`), un `nombre` (público) y un array de `notas` **privado**. Declara las tres propiedades directamente en los parámetros del constructor, con el atajo que viste en el capítulo 11.
-2. Añade un contador `static` de expedientes creados y un método `static registrar(nombre)` que cree un expediente con número automático: 1001, 1002, 1003… Añade también un *getter* estático, `total`, para consultar cuántos se han creado.
-3. Añade `anadirNota(nota)`, que será la **única** forma de añadir notas. Si la nota no está entre 0 y 10, debe lanzar un error: `throw new Error(...)`.
+1. Crea la clase `Expediente` y declara sus tres propiedades directamente en los parámetros del constructor, con el atajo que viste en el capítulo 11:
+   - `numero`: un número público y de solo lectura (`readonly`).
+   - `nombre`: un texto público.
+   - `notas`: un array de números **privado**, con valor por defecto `[]`, para que un expediente nuevo empiece sin notas.
+2. Numera los expedientes automáticamente con miembros `static`, que pertenecen a la clase y no a cada expediente:
+   - un contador privado, `creados`, que empieza en 0;
+   - un método `registrar(nombre)`, que suma 1 al contador y crea y devuelve un expediente con el número `1000 + creados` (el primero será el 1001, el segundo el 1002…);
+   - un *getter* `total`, que devuelve el valor del contador.
+3. Añade el método `anadirNota(nota)`, que será la **única** forma de añadir notas. Si la nota es menor que 0 o mayor que 10, debe lanzar un error con el mensaje `Nota fuera de rango: ` seguido de la nota. Si es válida, la guarda.
 4. Añade tres *getters*:
-   - `media`: la media de sus notas, o 0 si no tiene ninguna.
-   - `calificacion`: Sobresaliente (9 o más), Notable (7 o más), Suficiente (5 o más) o Insuficiente.
-   - `historial`: las notas, pero devolviendo una **copia** del array, no el original.
-5. Registra a Ana Serrano con las notas 8, 9.5 y 7, y a Luis Gil con un 4. Muestra sus datos y cuántos expedientes se han creado.
-6. Comprueba las dos protecciones:
-   - Intenta añadirle un 15 a Ana y captura el error con `try/catch`.
-   - Coge el `historial` de Ana, añádele un 10 y comprueba que el expediente real sigue teniendo 3 notas.
+   - `media`: la media de las notas, o `0` si no tiene ninguna.
+   - `calificacion`: `Sobresaliente` (media de 9 o más), `Notable` (7 o más), `Suficiente` (5 o más) o `Insuficiente`.
+   - `historial`: una **copia** del array de notas, no el original.
+5. Registra a Ana Serrano y añádele las notas 8, 9.5 y 7. Después registra a Luis Gil y añádele un 4. Muestra sus datos como en la salida esperada, con la media con dos decimales, y cuántos expedientes se han creado.
+6. Comprueba que las protecciones funcionan:
+   - Intenta añadirle un 15 a Ana. Captura el error con `try/catch` y muestra su mensaje.
+   - Guarda en una variable el `historial` de Ana, añádele un 10 y comprueba que el expediente sigue teniendo 3 notas.
+   - Escribe dos líneas que el compilador debe rechazar, `ana.notas.push(15);` y `ana.numero = 9999;`, y déjalas comentadas indicando el error que da cada una.
 
-> 💡 **Pista:** los *getters* se usan sin paréntesis, como si fueran propiedades: `ana.media`, no `ana.media()`.
+> 💡 **Pistas**
+> - Los *getters* se usan sin paréntesis, como si fueran propiedades: `ana.media`, no `ana.media()`.
+> - Un *getter* estático lleva `static` delante de `get`: `static get total()`. Se usa con el nombre de la clase: `Expediente.total`.
+> - En el `catch`, el error es de tipo `unknown`, así que no puedes leer `error.message` directamente: el compilador da `'error' is of type 'unknown'`. Compruébalo antes con `if (error instanceof Error)`.
+> - Para mostrar las notas separadas por comas: `ana.historial.join(", ")`.
 
 **Salida esperada**
 
