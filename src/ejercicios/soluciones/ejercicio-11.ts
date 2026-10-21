@@ -44,22 +44,20 @@ console.log(`Alumna: ${alumna.nombre} (${alumna.ciclo}), expediente ${alumna.exp
 console.log(`Tutor:  ${tutor.nombre}, ${tutor.departamento}, grupo ${tutor.grupo}`);
 
 /**
- * 4. Propiedades de tipo función: la interfaz describe QUÉ debe saber hacer
+ * 4. Propiedad de tipo función: la interfaz describe QUÉ debe saber hacer
  *    un objeto, no CÓMO lo hace.
+ *    En la interfaz el parámetro lleva su tipo (sin él: error TS7006).
  */
 interface Calculadora {
-  media(notas: number[]): number;
-  aprobado: (nota: number) => boolean;
+  media: (notas: number[]) => number;
 }
 
 const calculadora: Calculadora = {
-  // los tipos se infieren del contrato: no hay que repetirlos
-  media: (notas) => notas.reduce((a, n) => a + n, 0) / notas.length,
-  aprobado: (nota) => nota >= 5,
+  // El tipo de `notas` se deduce de la interfaz: no hay que repetirlo
+  media: (notas) => notas.reduce((acc, n) => acc + n, 0) / notas.length,
 };
 
 console.log(`Media -> ${calculadora.media([7, 8, 9]).toFixed(2)}`);
-console.log(`¿4.5 aprueba? -> ${calculadora.aprobado(4.5)}`);
 
 /**
  * 5. Declaration merging: dos interfaces con el mismo nombre se FUSIONAN.

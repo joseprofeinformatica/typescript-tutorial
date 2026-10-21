@@ -2459,17 +2459,19 @@ Recuento -> { PREINSCRITA: 1, CONFIRMADA: 3, ANULADA: 1 }
 ---
 
 ### Ejercicio 11 — Contratos con interfaces
-*Capítulo 10* · **Practicarás:** `interface`, herencia con `extends`, métodos en interfaces y *declaration merging*.
+*Capítulo 10* · **Practicarás:** `interface`, herencia con `extends`, propiedades de tipo función y *declaration merging*.
 
 **Pasos**
 
 1. Define la interfaz `Persona` con `id` (que no se pueda cambiar: `readonly`), `nombre` y `email`, que es opcional.
 2. Amplíala con `extends`: `Alumno` añade `expediente` y `ciclo`; `Docente` añade `departamento`. Después amplía `Docente` para crear `Tutor`, que añade `grupo`. Son tres niveles: `Persona` → `Docente` → `Tutor`.
 3. Crea una alumna (Ana Serrano, expediente 1001, DAM) y un tutor (Carlos Mendoza, departamento de Informática, grupo DAM2), y muéstralos.
-4. Define la interfaz `Calculadora` con un método `media(notas)` y una propiedad `aprobado` que sea una función. Crea un objeto que la cumpla **sin volver a escribir los tipos** de los parámetros: TypeScript los deduce de la interfaz. Prueba `media([7, 8, 9])` y `aprobado(4.5)`.
+4. Define la interfaz `Calculadora` con una sola propiedad, `media`, cuyo tipo es una función: recibe un array de notas (`number[]`) y devuelve un número. Después crea un objeto `calculadora` de tipo `Calculadora` y dale a `media` una *arrow function* que calcule la media de las notas. En esa *arrow function* **no escribas el tipo del parámetro**: pon `(notas) =>` y no `(notas: number[]) =>`, porque TypeScript ya lo conoce por la interfaz. Muestra la media de `[7, 8, 9]` con dos decimales.
 5. Declara **dos veces** una interfaz `Matricula`: una con `curso` y otra con `confirmada`. Comprueba que TypeScript las une en una sola y que un objeto de ese tipo necesita las dos propiedades.
 
-> 💡 **Pista:** en el paso 5 usa un nombre nuevo, como `Matricula`, y no `Alumno`: la fusión afecta a todo el fichero y rompería el objeto que ya creaste en el paso 3.
+> 💡 **Pistas**
+> - En el paso 4, una propiedad de tipo función se escribe con la sintaxis de flecha: `nombre: (parametro: Tipo) => TipoQueDevuelve;`. En la interfaz el parámetro **sí** lleva su tipo; si lo quitas, el compilador da el error `Parameter 'notas' implicitly has an 'any' type`.
+> - En el paso 5 usa un nombre nuevo, como `Matricula`, y no `Alumno`: la fusión afecta a todo el fichero y rompería el objeto que ya creaste en el paso 3.
 
 **Salida esperada**
 
@@ -2477,7 +2479,6 @@ Recuento -> { PREINSCRITA: 1, CONFIRMADA: 3, ANULADA: 1 }
 Alumna: Ana Serrano (DAM), expediente 1001
 Tutor:  Carlos Mendoza, Informática, grupo DAM2
 Media -> 8.00
-¿4.5 aprueba? -> false
 Matrícula 2024/25 confirmada: true
 ```
 
