@@ -2050,27 +2050,57 @@ A diferencia de las interfaces, las clases **sí generan código JavaScript**: e
 
 ```ts
 class Coche {
-  marca: string;
-  modelo: string;
+  marca: string; // se asigna en el constructor
+  modelo: string; // se asigna en el constructor
+  kilometros: number = 0; // valor inicial en la declaración
+  matricula?: string; // opcional: puede quedarse sin valor
 
   constructor(marca: string, modelo: string) {
     this.marca = marca;
     this.modelo = modelo;
   }
 
+  conducir(km: number): void {
+    this.kilometros += km;
+  }
+
   describir(): string {
-    return `${this.marca} ${this.modelo}`;
+    return `${this.marca} ${this.modelo}, ${this.kilometros} km, matrícula ${this.matricula ?? "pendiente"}`;
   }
 }
 
 const coche = new Coche("Seat", "Ibiza");
+coche.conducir(120);
+coche.conducir(35);
+console.log(coche.describir()); // Seat Ibiza, 155 km, matrícula pendiente
+
+coche.matricula = "1234ABC";
+console.log(coche.describir()); // Seat Ibiza, 155 km, matrícula 1234ABC
 ```
 
-El **constructor** es un método especial que se ejecuta al hacer `new` y sirve para inicializar las propiedades.
+El **constructor** es un método especial que se ejecuta al hacer `new` y sirve para inicializar las propiedades. Los **métodos**, como `conducir` y `describir`, leen y modifican las propiedades del propio objeto a través de `this`.
 
-> ⚠️ Con `strict` activado, **toda propiedad debe tener un valor**: o se inicializa
-> en la declaración (`puntuacion: number = 0`) o se asigna en el constructor. Si no,
-> el compilador da el error *"Property 'x' has no initializer"*.
+### Toda propiedad necesita un valor
+
+Con `strict` activado, cada propiedad debe tener un valor desde el momento en que se hace `new`. La clase `Coche` usa las tres formas de conseguirlo:
+
+| Propiedad | Cómo obtiene su valor | Cuándo usar esta forma |
+|---|---|---|
+| `marca`, `modelo` | Se asignan en el constructor | El valor llega desde fuera, al hacer `new` |
+| `kilometros` | Tiene un valor inicial en la declaración (`= 0`) | Todos los objetos empiezan con el mismo valor |
+| `matricula` | Es opcional (`?`) | Es normal que no tenga valor. Al usarla hay que contemplar el `undefined`, aquí con `??` |
+
+Si quitas el `= 0` de `kilometros`, el compilador da este error:
+
+```
+error TS2564: Property 'kilometros' has no initializer and is not definitely assigned in the constructor.
+```
+
+El error tiene sentido. Sin ese valor inicial, `kilometros` empezaría siendo `undefined`, `conducir(120)` calcularía `undefined + 120` y `describir()` mostraría `Seat Ibiza, NaN km`.
+
+> ⚠️ La asignación solo cuenta si está **en el propio constructor** y se hace **siempre**.
+> Asignar la propiedad desde otro método al que llama el constructor, o solo dentro de un `if`,
+> da el mismo error.
 
 ## Atajo del constructor
 
@@ -2283,16 +2313,123 @@ Es el punto intermedio entre una interfaz (solo el contrato) y una clase normal 
 
 ## Polimorfismo
 
-*Poli* = muchas, *morfos* = formas. Consiste en tratar objetos de clases distintas a través de un mismo tipo base:
+*Poli* = muchas, *morfos* = formas. Una misma llamada, como `f.area()`, hace cosas distintas según el objeto que haya detrás. Para que funcione, todos los objetos tienen que compartir un tipo: una clase base o una interfaz.
+
+### Con una clase base
+
+Añadimos una segunda figura a la de la sección anterior:
 
 ```ts
+class Rectangulo extends Figura {
+  constructor(
+    private base: number,
+    private altura: number,
+  ) {
+    super("Rectángulo");
+  }
+  override area(): number {
+    return this.base * this.altura;
+  }
+}
+
 const figuras: Figura[] = [new Circulo(3), new Rectangulo(4, 5)];
-figuras.forEach((f) => console.log("polimorfismo ->", f.describir()));
+figuras.forEach((f) => console.log(f.describir()));
+// Círculo tiene un área de 28.27
+// Rectángulo tiene un área de 20.00
 ```
 
-El array es de tipo `Figura[]`, pero cada elemento ejecuta **su propia** versión de `area()`. El código que recorre el array no necesita saber qué figura es cada una: solo que todas saben calcular su área.
+El array es de tipo `Figura[]`, pero cada elemento ejecuta **su propia** versión de `area()`.
 
-Este es el mecanismo que permite a Angular tratar de forma uniforme componentes distintos.
+La clase base no tiene por qué ser abstracta. Con `Vehiculo` y `Electrico`, de la sección de herencia, pasa lo mismo:
+
+```ts
+const flota: Vehiculo[] = [new Vehiculo("Seat"), new Electrico("Tesla", 500)];
+flota.forEach((v) => console.log(v.arrancar()));
+// Seat arrancando
+// Tesla arrancando en silencio (500 km)
+```
+
+`Electrico` sobrescribe `arrancar()` con `override`, así que se ejecuta su versión aunque el array sea de tipo `Vehiculo[]`.
+
+### Con interfaces
+
+Las clases ni siquiera necesitan un padre común: basta con que cumplan la misma interfaz. `Ticket` no tiene nada que ver con `Factura`, pero las dos son `Imprimible`:
+
+```ts
+class Ticket implements Imprimible {
+  constructor(
+    private caja: number,
+    private total: number,
+  ) {}
+
+  imprimir(): void {
+    console.log(`Ticket de la caja ${this.caja}: ${this.total.toFixed(2)} €`);
+  }
+}
+
+const documentos: Imprimible[] = [new Factura("F-2025-001", 121), new Ticket(2, 8.5)];
+documentos.forEach((d) => d.imprimir());
+// Factura F-2025-001: 121 €
+// Ticket de la caja 2: 8.50 €
+```
+
+### Para qué sirve
+
+El código que trabaja con el tipo base no necesita saber qué clases existen. Esta función suma el área de cualquier lista de figuras:
+
+```ts
+function areaTotal(lista: Figura[]): number {
+  return lista.reduce((acc, f) => acc + f.area(), 0);
+}
+```
+
+Si más adelante se añade una figura nueva, `areaTotal` sigue funcionando sin cambiar ni una línea:
+
+```ts
+class Triangulo extends Figura {
+  constructor(
+    private base: number,
+    private altura: number,
+  ) {
+    super("Triángulo");
+  }
+  override area(): number {
+    return (this.base * this.altura) / 2;
+  }
+}
+
+figuras.push(new Triangulo(6, 2));
+console.log(`Área total: ${areaTotal(figuras).toFixed(2)}`); // Área total: 54.27
+```
+
+### Lo que se pierde: lo propio de cada clase
+
+A través del tipo base solo se ve lo que declara el tipo base. `Figura` no tiene `radio`, así que esto no compila aunque el primer elemento sea un círculo:
+
+```ts
+// figuras[0].radio;   // Error: Property 'radio' does not exist on type 'Figura'.
+```
+
+Cuando necesites saber de qué clase es cada objeto, usa `instanceof`, que viste en el capítulo 08:
+
+```ts
+const circulos = figuras.filter((f) => f instanceof Circulo).length;
+console.log(`Círculos: ${circulos} de ${figuras.length}`); // Círculos: 1 de 3
+```
+
+Si te encuentras llenando el código de `instanceof`, suele ser señal de que ese comportamiento debería ser un método del tipo base.
+
+### En Angular
+
+Angular llama a `ngOnInit()` en cada componente al crearlo, sin saber de qué clase es cada uno: le basta con que tenga ese método. La interfaz `OnInit` es el contrato que te obliga a escribirlo con el nombre y la forma correctos:
+
+```ts
+export class ListaAlumnosComponent implements OnInit {
+  ngOnInit(): void {
+    // cargar los datos al crear el componente
+  }
+}
+```
 
 ---
 

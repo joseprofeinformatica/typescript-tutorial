@@ -5,22 +5,38 @@
  */
 
 // ---------- Declaración e instanciación ----------
+// Con `strict`, toda propiedad necesita un valor desde que se hace `new`.
+// Coche usa las tres formas de dárselo:
 class Coche {
-  marca: string;
-  modelo: string;
+  marca: string; // se asigna en el constructor
+  modelo: string; // se asigna en el constructor
+  kilometros: number = 0; // valor inicial en la declaración
+  matricula?: string; // opcional: puede quedarse sin valor
 
   constructor(marca: string, modelo: string) {
     this.marca = marca;
     this.modelo = modelo;
   }
 
+  conducir(km: number): void {
+    this.kilometros += km;
+  }
+
   describir(): string {
-    return `${this.marca} ${this.modelo}`;
+    return `${this.marca} ${this.modelo}, ${this.kilometros} km, matrícula ${this.matricula ?? "pendiente"}`;
   }
 }
 
 const coche = new Coche("Seat", "Ibiza");
+coche.conducir(120);
+coche.conducir(35);
 console.log("describir ->", coche.describir());
+
+coche.matricula = "1234ABC";
+console.log("con matrícula ->", coche.describir());
+
+// Si quitas el `= 0` de kilometros:
+// error TS2564: Property 'kilometros' has no initializer and is not definitely assigned in the constructor.
 
 // ---------- Atajo del constructor (parameter properties) ----------
 // Declara y asigna la propiedad en un solo paso. Es lo que verás en los
@@ -192,8 +208,54 @@ class Rectangulo extends Figura {
 // new Figura("x");   // Error: Cannot create an instance of an abstract class.
 
 // ---------- Polimorfismo ----------
-// Tratamos objetos distintos a través del mismo tipo base.
+// Una misma llamada hace cosas distintas según el objeto que haya detrás.
+
+// Con una clase base (aquí, abstracta)
 const figuras: Figura[] = [new Circulo(3), new Rectangulo(4, 5)];
 figuras.forEach((f) => console.log("polimorfismo ->", f.describir()));
+
+// Con herencia normal: Electrico sobrescribe arrancar()
+const flota: Vehiculo[] = [new Vehiculo("Seat"), new Electrico("Tesla", 500)];
+flota.forEach((v) => console.log("flota ->", v.arrancar()));
+
+// Con interfaces: Ticket y Factura no tienen ningún padre en común
+class Ticket implements Imprimible {
+  constructor(
+    private caja: number,
+    private total: number,
+  ) {}
+
+  imprimir(): void {
+    console.log(`Ticket de la caja ${this.caja}: ${this.total.toFixed(2)} €`);
+  }
+}
+
+const documentos: Imprimible[] = [new Factura("F-2025-001", 121), new Ticket(2, 8.5)];
+documentos.forEach((d) => d.imprimir());
+
+// Para qué sirve: esta función vale para figuras que todavía no existen
+function areaTotal(lista: Figura[]): number {
+  return lista.reduce((acc, f) => acc + f.area(), 0);
+}
+
+class Triangulo extends Figura {
+  constructor(
+    private base: number,
+    private altura: number,
+  ) {
+    super("Triángulo");
+  }
+  override area(): number {
+    return (this.base * this.altura) / 2;
+  }
+}
+
+figuras.push(new Triangulo(6, 2)); // areaTotal no cambia ni una línea
+console.log(`área total -> ${areaTotal(figuras).toFixed(2)}`);
+
+// Lo que se pierde: a través de Figura no se ve lo propio de cada clase
+// figuras[0].radio;   // Error: Property 'radio' does not exist on type 'Figura'.
+const circulos = figuras.filter((f) => f instanceof Circulo).length;
+console.log(`instanceof -> círculos: ${circulos} de ${figuras.length}`);
 
 export {};
