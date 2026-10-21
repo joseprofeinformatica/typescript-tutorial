@@ -125,16 +125,4 @@ type EstadoPedidoUnion = "PENDIENTE" | "ENVIADO" | "ENTREGADO";
 const estado2: EstadoPedidoUnion = "ENTREGADO";
 console.log("Union de literales ->", estado2);
 
-// Truco: objeto `as const` = lo mejor de los dos mundos
-const Prioridad = {
-  Baja: "BAJA",
-  Media: "MEDIA",
-  Alta: "ALTA",
-} as const;
-
-type Prioridad = (typeof Prioridad)[keyof typeof Prioridad]; // "BAJA" | "MEDIA" | "ALTA"
-
-const p: Prioridad = Prioridad.Alta;
-console.log("as const ->", p, "| valores:", Object.values(Prioridad));
-
 export {};

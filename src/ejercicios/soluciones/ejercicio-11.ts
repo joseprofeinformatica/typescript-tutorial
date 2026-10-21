@@ -1,6 +1,6 @@
 /**
  * EJERCICIO 11 — Estados de la matrícula
- * Capítulo 09 (enum, unión de literales, objeto `as const`)
+ * Capítulo 09 (enum y unión de literales)
  */
 
 // --- OPCIÓN A: enum de cadenas ---
@@ -34,19 +34,6 @@ console.log(`unión -> ${estadoActual}`);
  * La unión NO genera código: desaparece al transpilar.
  * A cambio, no se puede recorrer con Object.values().
  */
-
-// --- OPCIÓN C: objeto `as const`, lo mejor de las dos ---
-const ESTADOS = {
-  Preinscrita: "PREINSCRITA",
-  Confirmada: "CONFIRMADA",
-  Anulada: "ANULADA",
-} as const;
-
-type EstadoConst = (typeof ESTADOS)[keyof typeof ESTADOS];
-
-const otro: EstadoConst = ESTADOS.Anulada;
-console.log(`as const -> ${otro}`);
-console.log("as const, todos los valores ->", Object.values(ESTADOS));
 
 /**
  * POR QUÉ NO USAR ENUM NUMÉRICO.

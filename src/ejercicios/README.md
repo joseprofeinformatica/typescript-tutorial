@@ -27,8 +27,8 @@ npm run play -- src/ejercicios/soluciones/ejercicio-01.ts
 | 08 | [Criterios intercambiables](soluciones/ejercicio-08.ts) | 07 | Callbacks tipadas, `this` en arrow functions |
 | 09 | [Modelar el alumno con `type`](soluciones/ejercicio-09.ts) | 08 | Uniones de literales, `readonly`, opcionales, `&`, template literal types |
 | 10 | [Validar lo que llega de fuera](soluciones/ejercicio-10.ts) | 08 | Type guards (`x is T`), narrowing con `in`, `unknown` |
-| 11 | [Estados de la matrícula](soluciones/ejercicio-11.ts) | 09 | `enum`, unión de literales, `as const`, el bug del enum numérico |
-| 12 | [Contratos con interfaces](soluciones/ejercicio-12.ts) | 10 | `extends` encadenado, propiedades función, index signature, merging |
+| 11 | [Estados de la matrícula](soluciones/ejercicio-11.ts) | 09 | `enum`, unión de literales, el bug del enum numérico |
+| 12 | [Contratos con interfaces](soluciones/ejercicio-12.ts) | 10 | `extends` encadenado, propiedades función, merging |
 | 13 | [El expediente como clase](soluciones/ejercicio-13.ts) | 11 | Encapsulación, getters, miembros estáticos, validación |
 | 14 | [Jerarquía del personal](soluciones/ejercicio-14.ts) | 11 | Clase abstracta, herencia en 3 niveles, `override`, `super`, polimorfismo |
 

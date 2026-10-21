@@ -79,27 +79,6 @@ const calc: Calculadora = {
 };
 console.log("calc ->", calc.sumar(2, 3), calc.restar(9, 4));
 
-// ---------- Call signature: la interfaz ES una función ----------
-interface Saludo {
-  (nombre: string): string; // firma de llamada
-  idioma: string; // ...y además tiene propiedades
-}
-
-const saludar = ((nombre: string) => `Hola ${nombre}`) as Saludo;
-saludar.idioma = "es";
-console.log("Call signature ->", saludar("Jose"), `(${saludar.idioma})`);
-
-// ---------- Index signature: claves dinámicas ----------
-interface Diccionario {
-  [clave: string]: string;
-}
-
-const traducciones: Diccionario = { hola: "hello", adios: "goodbye" };
-// Con "noPropertyAccessFromIndexSignature" (activo aquí y en Angular)
-// hay que acceder con corchetes, no con punto:
-console.log("Index signature ->", traducciones["hola"]);
-// console.log(traducciones.hola);   // Error: Property 'hola' comes from an index signature.
-
 // ---------- type vs interface ----------
 /**
  * interface:

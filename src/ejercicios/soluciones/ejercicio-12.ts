@@ -1,6 +1,6 @@
 /**
  * EJERCICIO 12 — Contratos con interfaces
- * Capítulo 10 (interface, extends, propiedades función, index signature)
+ * Capítulo 10 (interface, extends, propiedades función, declaration merging)
  */
 
 // 1. Interfaz base
@@ -62,29 +62,7 @@ console.log(`Media -> ${calculadora.media([7, 8, 9]).toFixed(2)}`);
 console.log(`¿4.5 aprueba? -> ${calculadora.aprobado(4.5)}`);
 
 /**
- * 5. Index signature: claves que no se conocen de antemano.
- *    Con "noPropertyAccessFromIndexSignature" (activo en este proyecto
- *    y en Angular) hay que acceder con corchetes, no con punto.
- */
-interface NotasPorModulo {
-  [modulo: string]: number;
-}
-
-const notas: NotasPorModulo = {
-  "Programación": 8.5,
-  "Bases de Datos": 7,
-  "Entornos de Desarrollo": 9,
-};
-
-console.log(`Programación -> ${notas["Programación"]}`);
-// console.log(notas.Programación);   // ❌ Error: viene de un index signature
-
-for (const modulo in notas) {
-  console.log(`  ${modulo}: ${notas[modulo]}`);
-}
-
-/**
- * 6. Declaration merging: dos interfaces con el mismo nombre se FUSIONAN.
+ * 5. Declaration merging: dos interfaces con el mismo nombre se FUSIONAN.
  *    Los `type` no pueden hacer esto.
  *
  * ⚠️ OJO: la fusión afecta a TODO el fichero, no solo de aquí en adelante.

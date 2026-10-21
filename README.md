@@ -1860,29 +1860,9 @@ if (estadoSeguro === "en-progreso") {
 
 Añadir estados nuevos no afecta a los existentes, y si renombras uno, TypeScript te obliga a actualizar todos los sitios donde se usaba.
 
-## Objeto `as const`: lo mejor de los dos
-
-Si necesitas recorrer los valores pero no quieres el peso ni los riesgos del `enum`:
-
-```ts
-const Prioridad = {
-  Baja: "BAJA",
-  Media: "MEDIA",
-  Alta: "ALTA",
-} as const;
-
-type Prioridad = (typeof Prioridad)[keyof typeof Prioridad]; // "BAJA" | "MEDIA" | "ALTA"
-
-const p: Prioridad = Prioridad.Alta;
-console.log("as const ->", p, "| valores:", Object.values(Prioridad));
-```
-
-`as const` congela el objeto y hace que TypeScript infiera los tipos literales exactos en lugar de `string`. Obtienes autocompletado, recorrido con `Object.values()` y tipado estricto.
-
 > **Cuándo usar cada uno**
 > - **Unión de literales**: por defecto. Es lo más común en proyectos Angular.
-> - **`as const`**: cuando además necesites recorrer los valores.
-> - **`enum`**: solo si necesitas el mapeo inverso o lo exige una librería.
+> - **`enum`**: solo si necesitas recorrer los valores, el mapeo inverso o lo exige una librería.
 
 ---
 
@@ -1979,41 +1959,6 @@ const calc: Calculadora = {
 ```
 
 Fíjate en que al implementarla **no hace falta repetir los tipos**: TypeScript los deduce del contrato.
-
-## Call signature
-
-Una interfaz puede describir **una función que además tiene propiedades**:
-
-```ts
-interface Saludo {
-  (nombre: string): string; // firma de llamada
-  idioma: string; // ...y además tiene propiedades
-}
-
-const saludar = ((nombre: string) => `Hola ${nombre}`) as Saludo;
-saludar.idioma = "es";
-console.log("Call signature ->", saludar("Jose"), `(${saludar.idioma})`);
-```
-
-La línea sin nombre `(nombre: string): string` es la firma de llamada: dice cómo se invoca el propio objeto.
-
-## Index signature
-
-Para objetos con claves dinámicas que no conoces de antemano:
-
-```ts
-interface Diccionario {
-  [clave: string]: string;
-}
-
-const traducciones: Diccionario = { hola: "hello", adios: "goodbye" };
-// Con "noPropertyAccessFromIndexSignature" (activo aquí y en Angular)
-// hay que acceder con corchetes, no con punto:
-console.log("Index signature ->", traducciones["hola"]);
-// console.log(traducciones.hola);   // Error: Property 'hola' comes from an index signature.
-```
-
-Esa regla obliga a distinguir visualmente entre una propiedad que **existe seguro** (acceso con punto) y una que puede no existir (acceso con corchetes).
 
 ## `type` frente a `interface`
 
@@ -2602,22 +2547,18 @@ Sofía: preinscrito el 2025-06-20
 ---
 
 ### Ejercicio 11 — Estados de la matrícula
-*Capítulo 09* · **Practicarás:** `enum`, uniones de literales y objetos `as const`, y por qué conviene evitar los `enum` numéricos.
+*Capítulo 09* · **Practicarás:** `enum` y uniones de literales, y por qué conviene evitar los `enum` numéricos.
 
-Una matrícula puede estar preinscrita, confirmada o anulada. Vas a representar esos tres estados de tres formas distintas para compararlas.
+Una matrícula puede estar preinscrita, confirmada o anulada. Vas a representar esos tres estados de dos formas distintas para compararlas.
 
 **Pasos**
 
 1. **Con un `enum` de textos.** Crea `EstadoMatricula` con los valores `"PREINSCRITA"`, `"CONFIRMADA"` y `"ANULADA"`. Escribe una función con `switch` que devuelva un mensaje para cada estado (por ejemplo, `"Matrícula en vigor"` para la confirmada) y pruébala. Muestra también todos sus valores con `Object.values()`.
 2. **Con una unión de literales.** Define `type Estado = "PREINSCRITA" | "CONFIRMADA" | "ANULADA"`, crea una variable de ese tipo y muéstrala.
-3. **Con un objeto `as const`.** Crea un objeto `ESTADOS` con los tres valores, termínalo con `as const` y obtén de él un tipo. Muestra uno de sus valores y todos con `Object.values()`.
-4. **El peligro del `enum` numérico.** Crea un `enum` con Preinscrita, Confirmada y Anulada **sin darles valor**: TypeScript los numera solo como 0, 1 y 2. Guarda el número `1`, como si viniera de una base de datos, y muestra a qué estado corresponde. Crea después una segunda versión del `enum` con un estado nuevo, `Borrador`, **al principio**, y comprueba a qué estado corresponde ahora ese mismo `1`. ¿Te avisa el compilador?
-5. Con la lista `["CONFIRMADA", "PREINSCRITA", "CONFIRMADA", "ANULADA", "CONFIRMADA"]`, cuenta cuántas matrículas hay de cada estado. Guarda el recuento en un `Record<Estado, number>`.
+3. **El peligro del `enum` numérico.** Crea un `enum` con Preinscrita, Confirmada y Anulada **sin darles valor**: TypeScript los numera solo como 0, 1 y 2. Guarda el número `1`, como si viniera de una base de datos, y muestra a qué estado corresponde. Crea después una segunda versión del `enum` con un estado nuevo, `Borrador`, **al principio**, y comprueba a qué estado corresponde ahora ese mismo `1`. ¿Te avisa el compilador?
+4. Con la lista `["CONFIRMADA", "PREINSCRITA", "CONFIRMADA", "ANULADA", "CONFIRMADA"]`, cuenta cuántas matrículas hay de cada estado. Guarda el recuento en un `Record<Estado, number>`.
 
-> 💡 **Pistas**
-> - En un `enum` numérico, `EstadoV1[1]` devuelve el **nombre** que corresponde al número 1.
-> - Sacar el tipo del objeto `as const` es la parte más rara del ejercicio. Se hace así:
->   `type EstadoConst = (typeof ESTADOS)[keyof typeof ESTADOS];`
+> 💡 **Pista:** en un `enum` numérico, `EstadoV1[1]` devuelve el **nombre** que corresponde al número 1.
 
 **Salida esperada**
 
@@ -2625,8 +2566,6 @@ Una matrícula puede estar preinscrita, confirmada o anulada. Vas a representar 
 enum -> CONFIRMADA: Matrícula en vigor
 enum, todos los valores -> [ 'PREINSCRITA', 'CONFIRMADA', 'ANULADA' ]
 unión -> PREINSCRITA
-as const -> ANULADA
-as const, todos los valores -> [ 'PREINSCRITA', 'CONFIRMADA', 'ANULADA' ]
 V1: el 1 es Confirmada
 V2: el mismo 1 ahora es Preinscrita ❌
 Recuento -> { PREINSCRITA: 1, CONFIRMADA: 3, ANULADA: 1 }
@@ -2635,7 +2574,7 @@ Recuento -> { PREINSCRITA: 1, CONFIRMADA: 3, ANULADA: 1 }
 ---
 
 ### Ejercicio 12 — Contratos con interfaces
-*Capítulo 10* · **Practicarás:** `interface`, herencia con `extends`, métodos en interfaces, *index signatures* y *declaration merging*.
+*Capítulo 10* · **Practicarás:** `interface`, herencia con `extends`, métodos en interfaces y *declaration merging*.
 
 **Pasos**
 
@@ -2643,12 +2582,9 @@ Recuento -> { PREINSCRITA: 1, CONFIRMADA: 3, ANULADA: 1 }
 2. Amplíala con `extends`: `Alumno` añade `expediente` y `ciclo`; `Docente` añade `departamento`. Después amplía `Docente` para crear `Tutor`, que añade `grupo`. Son tres niveles: `Persona` → `Docente` → `Tutor`.
 3. Crea una alumna (Ana Serrano, expediente 1001, DAM) y un tutor (Carlos Mendoza, departamento de Informática, grupo DAM2), y muéstralos.
 4. Define la interfaz `Calculadora` con un método `media(notas)` y una propiedad `aprobado` que sea una función. Crea un objeto que la cumpla **sin volver a escribir los tipos** de los parámetros: TypeScript los deduce de la interfaz. Prueba `media([7, 8, 9])` y `aprobado(4.5)`.
-5. Define `NotasPorModulo` con un *index signature*, es decir, con claves de texto que no se conocen de antemano y valores numéricos. Guarda estas notas: Programación 8.5, Bases de Datos 7 y Entornos de Desarrollo 9. Muestra la de Programación y después recórrelas todas con `for...in`.
-6. Declara **dos veces** una interfaz `Matricula`: una con `curso` y otra con `confirmada`. Comprueba que TypeScript las une en una sola y que un objeto de ese tipo necesita las dos propiedades.
+5. Declara **dos veces** una interfaz `Matricula`: una con `curso` y otra con `confirmada`. Comprueba que TypeScript las une en una sola y que un objeto de ese tipo necesita las dos propiedades.
 
-> 💡 **Pistas**
-> - En el paso 5, en este proyecto (y en Angular) hay que leer las notas con corchetes, `notas["Programación"]`, y no con punto. Se explica en [Sobre la configuración](#sobre-la-configuración).
-> - En el paso 6 usa un nombre nuevo, como `Matricula`, y no `Alumno`: la fusión afecta a todo el fichero y rompería el objeto que ya creaste en el paso 3.
+> 💡 **Pista:** en el paso 5 usa un nombre nuevo, como `Matricula`, y no `Alumno`: la fusión afecta a todo el fichero y rompería el objeto que ya creaste en el paso 3.
 
 **Salida esperada**
 
@@ -2657,10 +2593,6 @@ Alumna: Ana Serrano (DAM), expediente 1001
 Tutor:  Carlos Mendoza, Informática, grupo DAM2
 Media -> 8.00
 ¿4.5 aprueba? -> false
-Programación -> 8.5
-  Programación: 8.5
-  Bases de Datos: 7
-  Entornos de Desarrollo: 9
 Matrícula 2024/25 confirmada: true
 ```
 
