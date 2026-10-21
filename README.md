@@ -2485,7 +2485,7 @@ Matrícula 2024/25 confirmada: true
 ---
 
 ### Ejercicio 12 — El expediente como clase
-*Capítulo 11* · **Practicarás:** clases, `private` y `readonly`, el atajo del constructor, miembros `static` y *getters*.
+*Capítulo 11* · **Practicarás:** clases, `private` y `readonly`, el atajo del constructor, propiedades y métodos `static` y *getters*.
 
 El expediente de un alumno guarda sus notas. Vas a escribir una clase que las proteja: nadie podrá meter una nota fuera de rango ni modificar las notas desde fuera de la clase.
 
@@ -2495,7 +2495,7 @@ El expediente de un alumno guarda sus notas. Vas a escribir una clase que las pr
    - `numero`: un número público y de solo lectura (`readonly`).
    - `nombre`: un texto público.
    - `notas`: un array de números **privado**, con valor por defecto `[]`, para que un expediente nuevo empiece sin notas.
-2. Numera los expedientes automáticamente con miembros `static`, que pertenecen a la clase y no a cada expediente:
+2. Numera los expedientes automáticamente con propiedades y métodos `static`, que pertenecen a la clase y no a cada expediente:
    - un contador privado, `creados`, que empieza en 0;
    - un método `registrar(nombre)`, que suma 1 al contador y crea y devuelve un expediente con el número `1000 + creados` (el primero será el 1001, el segundo el 1002…);
    - un *getter* `total`, que devuelve el valor del contador.
