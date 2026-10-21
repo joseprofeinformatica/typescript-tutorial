@@ -1,104 +1,111 @@
 /**
- * EJERCICIO 18 — Cargar las notas desde el servidor
- * Capítulo 15 (promesas, async/await, Promise.all, fetch)
+ * EJERCICIO 18 — Decoradores para el sistema académico
+ * Capítulo 16 (decoradores de clase, método, propiedad y parámetro)
  */
 
-interface Alumno {
-  id: number;
-  nombre: string;
-  nota: number;
+// 1. DECORADOR DE CLASE: se ejecuta al CARGAR el fichero, no al instanciar
+function Entidad(constructor: Function): void {
+  console.log(`[Entidad] registrada la clase "${constructor.name}"`);
 }
 
 /**
- * 1. Simulamos el servidor con una promesa que tarda.
- *    Promise<T> es genérico: T es el tipo que resolverá.
+ * 2. DECORADOR DE MÉTODO: envuelve el método original.
+ *    El patrón es siempre el mismo: guardar el original, sustituirlo
+ *    por otro que hace algo antes y después, y llamar al original en medio.
  */
-function buscarAlumno(id: number): Promise<Alumno> {
-  return new Promise<Alumno>((resolve, reject) => {
-    setTimeout(() => {
-      if (id <= 0) {
-        reject(new Error(`Id no válido: ${id}`));
-        return;
+function Auditar(_objetivo: any, nombre: string, descriptor: PropertyDescriptor): PropertyDescriptor {
+  const original = descriptor.value;
+
+  descriptor.value = function (...args: any[]) {
+    console.log(`  [Auditar] ${nombre}(${args.join(", ")})`);
+    const resultado = original.apply(this, args);
+    console.log(`  [Auditar] ${nombre} devolvió ${resultado}`);
+    return resultado;
+  };
+
+  return descriptor;
+}
+
+// 3. DECORADOR DE MÉTODO CON PARÁMETROS (decorator factory)
+function Reintentar(veces: number) {
+  return function (_objetivo: any, nombre: string, descriptor: PropertyDescriptor): PropertyDescriptor {
+    const original = descriptor.value;
+
+    descriptor.value = function (...args: any[]) {
+      for (let intento = 1; intento <= veces; intento++) {
+        try {
+          return original.apply(this, args);
+        } catch {
+          console.log(`  [Reintentar] ${nombre} falló (intento ${intento}/${veces})`);
+          if (intento === veces) return null;
+        }
       }
-      resolve({ id, nombre: `Alumno ${id}`, nota: 5 + (id % 5) });
-    }, 120);
-  });
-}
+      return null;
+    };
 
-// 2. Consumirla con async/await y try/catch
-async function mostrarUno(): Promise<void> {
-  try {
-    const alumno = await buscarAlumno(3);
-    console.log(`Encontrado -> ${alumno.nombre} con ${alumno.nota}`);
-
-    await buscarAlumno(-1); // esta rechaza
-  } catch (error) {
-    // Lo capturado es `unknown`: hay que comprobar qué es
-    if (error instanceof Error) {
-      console.log(`Error controlado -> ${error.message}`);
-    }
-  }
+    return descriptor;
+  };
 }
 
 /**
- * 3. SECUENCIAL frente a PARALELO.
- *    Si las peticiones no dependen entre sí, encadenarlas con await
- *    triplica el tiempo sin ningún motivo.
+ * 4. DECORADOR DE PROPIEDAD: intercepta lectura y escritura.
+ *    Es el tipo que usa Angular para @Input().
  */
-async function comparar(): Promise<void> {
-  const t1 = Date.now();
-  await buscarAlumno(1);
-  await buscarAlumno(2);
-  await buscarAlumno(3);
-  const secuencial = Date.now() - t1;
+function EnRango(min: number, max: number) {
+  return function (objetivo: any, nombre: string): void {
+    let valor: number = min;
 
-  const t2 = Date.now();
-  const alumnos = await Promise.all([buscarAlumno(1), buscarAlumno(2), buscarAlumno(3)]);
-  const paralelo = Date.now() - t2;
-
-  console.log(`Secuencial: ~${Math.round(secuencial / 100) * 100} ms`);
-  console.log(`Paralelo:   ~${Math.round(paralelo / 100) * 100} ms`);
-  console.log(`Media de los 3 -> ${(alumnos.reduce((a, x) => a + x.nota, 0) / 3).toFixed(2)}`);
+    Object.defineProperty(objetivo, nombre, {
+      get: () => valor,
+      set: (nuevo: number) => {
+        if (nuevo < min || nuevo > max) {
+          console.log(`  [EnRango] ${nombre}=${nuevo} fuera de [${min}, ${max}], se ignora`);
+          return;
+        }
+        valor = nuevo;
+      },
+      enumerable: true,
+      configurable: true,
+    });
+  };
 }
 
-// 4. allSettled: no falla aunque alguna promesa rechace
-async function tolerante(): Promise<void> {
-  const resultados = await Promise.allSettled([buscarAlumno(1), buscarAlumno(-5), buscarAlumno(2)]);
-
-  resultados.forEach((r, i) => {
-    if (r.status === "fulfilled") {
-      console.log(`  [${i}] OK -> ${r.value.nombre}`);
-    } else {
-      console.log(`  [${i}] KO -> ${(r.reason as Error).message}`);
-    }
-  });
+// 5. DECORADOR DE PARÁMETRO: solo registra metadatos, no intercepta
+function Obligatorio(_objetivo: any, metodo: string, indice: number): void {
+  console.log(`[Obligatorio] parámetro ${indice} de ${metodo}() es obligatorio`);
 }
 
-// 5. fetch real y tipado contra una API pública
-interface PostApi {
-  id: number;
-  title: string;
-}
+@Entidad
+class Expediente {
+  @EnRango(0, 10)
+  nota!: number;
 
-async function desdeApi(): Promise<void> {
-  try {
-    const respuesta = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+  private intentos = 0;
 
-    // fetch NO lanza error con un 404 o un 500: hay que comprobarlo
-    if (!respuesta.ok) throw new Error(`Error HTTP ${respuesta.status}`);
+  @Auditar
+  calificar(@Obligatorio nombre: string, nota: number): string {
+    this.nota = nota;
+    return `${nombre}: ${this.nota >= 5 ? "APTO" : "NO APTO"}`;
+  }
 
-    const post = (await respuesta.json()) as PostApi;
-    console.log(`API -> post ${post.id}: ${post.title.slice(0, 30)}…`);
-  } catch (error) {
-    if (error instanceof Error) console.log(`Sin conexión: ${error.message}`);
+  // Falla las dos primeras veces y a la tercera funciona
+  @Reintentar(3)
+  sincronizar(): string {
+    this.intentos++;
+    if (this.intentos < 3) throw new Error("red caída");
+    return `sincronizado al intento ${this.intentos}`;
   }
 }
 
-// Top-level await: permitido porque este fichero es un módulo ESM
-await mostrarUno();
-await comparar();
-console.log("allSettled:");
-await tolerante();
-await desdeApi();
+console.log("--- uso ---");
+const exp = new Expediente();
+
+console.log(exp.calificar("Ana Serrano", 8));
+console.log(exp.calificar("Luis Gil", 4));
+
+exp.nota = 50; // rechazado por @EnRango
+console.log(`Nota final: ${exp.nota}`);
+
+console.log(`Sincronizar -> ${exp.sincronizar()}`);
 
 export {};

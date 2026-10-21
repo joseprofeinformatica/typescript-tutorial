@@ -1,108 +1,91 @@
 /**
- * EJERCICIO 14 — Jerarquía del personal del centro
- * Capítulo 11 (clases abstractas, herencia, override, polimorfismo)
+ * EJERCICIO 14 — Un repositorio que sirva para cualquier entidad
+ * Capítulo 12 (genéricos, restricciones, keyof)
  */
 
-/**
- * Clase abstracta: no se puede instanciar.
- * Define lo común y OBLIGA a las hijas a completar lo que falta.
- */
-abstract class MiembroComunidad {
-  constructor(
-    public readonly id: number,
-    public nombre: string,
-  ) {}
-
-  // Sin cuerpo: cada hija lo resuelve a su manera
-  abstract get rol(): string;
-  abstract horasSemanales(): number;
-
-  // Concreto: se hereda tal cual y usa los métodos abstractos
-  presentarse(): string {
-    return `${this.nombre} (${this.rol}) — ${this.horasSemanales()} h/semana`;
-  }
+interface Alumno {
+  id: number;
+  nombre: string;
+  ciclo: "DAM" | "DAW";
 }
-
-class Alumno extends MiembroComunidad {
-  constructor(
-    id: number,
-    nombre: string,
-    private modulos: number,
-  ) {
-    super(id, nombre); // obligatorio antes de usar `this`
-  }
-
-  override get rol(): string {
-    return "Alumno";
-  }
-
-  override horasSemanales(): number {
-    return this.modulos * 4;
-  }
-}
-
-class Docente extends MiembroComunidad {
-  constructor(
-    id: number,
-    nombre: string,
-    protected grupos: number,
-  ) {
-    super(id, nombre);
-  }
-
-  override get rol(): string {
-    return "Docente";
-  }
-
-  override horasSemanales(): number {
-    return 18 + this.grupos * 2;
-  }
+interface Modulo {
+  id: number;
+  titulo: string;
+  horas: number;
 }
 
 /**
- * Tres niveles de herencia. `override` es obligatorio en este proyecto
- * y en Angular ("noImplicitOverride"): avisa si el padre cambia el método.
+ * La restricción `T extends { id: number }` es lo que permite escribir
+ * `item.id` dentro de la clase. Sin ella el compilador no sabría
+ * que ese campo existe.
  */
-class Tutor extends Docente {
-  constructor(
-    id: number,
-    nombre: string,
-    grupos: number,
-    private grupoTutorizado: string,
-  ) {
-    super(id, nombre, grupos);
+class Repositorio<T extends { id: number }> {
+  private datos = new Map<number, T>();
+
+  guardar(item: T): void {
+    this.datos.set(item.id, item);
   }
 
-  override get rol(): string {
-    return `Tutor de ${this.grupoTutorizado}`;
+  // Devuelve T | undefined porque Map.get() puede no encontrar nada
+  porId(id: number): T | undefined {
+    return this.datos.get(id);
   }
 
-  // super.x() llama a la versión del padre y le suma lo propio
-  override horasSemanales(): number {
-    return super.horasSemanales() + 3;
+  todos(): T[] {
+    return [...this.datos.values()];
+  }
+
+  // Callback genérica: el criterio lo pone quien llama
+  buscar(criterio: (item: T) => boolean): T[] {
+    return this.todos().filter(criterio);
+  }
+
+  borrar(id: number): boolean {
+    return this.datos.delete(id);
+  }
+
+  get cantidad(): number {
+    return this.datos.size;
   }
 }
 
-// const x = new MiembroComunidad(1, "Nadie");  // ❌ no se puede instanciar
+// Una sola clase, dos entidades distintas y totalmente tipadas
+const alumnos = new Repositorio<Alumno>();
+alumnos.guardar({ id: 1, nombre: "Ana Serrano", ciclo: "DAM" });
+alumnos.guardar({ id: 2, nombre: "Luis Gil", ciclo: "DAW" });
+alumnos.guardar({ id: 3, nombre: "Marta Ruiz", ciclo: "DAM" });
+
+const modulos = new Repositorio<Modulo>();
+modulos.guardar({ id: 10, titulo: "Programación", horas: 256 });
+modulos.guardar({ id: 11, titulo: "Bases de Datos", horas: 192 });
+
+console.log("Alumno 2 ->", alumnos.porId(2));
+console.log(
+  "De DAM   ->",
+  alumnos.buscar((a) => a.ciclo === "DAM").map((a) => a.nombre),
+);
+console.log(
+  "Módulos largos ->",
+  modulos.buscar((m) => m.horas > 200).map((m) => m.titulo),
+);
+console.log(`Alumnos: ${alumnos.cantidad} | Módulos: ${modulos.cantidad}`);
+
+console.log("Borrar id 3 ->", alumnos.borrar(3));
+console.log("Borrar id 9 ->", alumnos.borrar(9));
+console.log(`Quedan ${alumnos.cantidad} alumnos`);
+
+// alumnos.guardar({ id: 4, titulo: "x", horas: 1 });  // ❌ no es un Alumno
 
 /**
- * POLIMORFISMO: un array de la clase base, pero cada elemento
- * ejecuta SU propia versión de rol() y horasSemanales().
+ * Función genérica con `keyof`: la clave debe existir en T, y el tipo
+ * del resultado CAMBIA según la clave que pidas.
  */
-const comunidad: MiembroComunidad[] = [
-  new Alumno(1, "Ana Serrano", 5),
-  new Docente(50, "Marta Ruiz", 3),
-  new Tutor(51, "Carlos Mendoza", 3, "DAM2"),
-];
+function extraer<T, K extends keyof T>(items: T[], clave: K): T[K][] {
+  return items.map((item) => item[clave]);
+}
 
-comunidad.forEach((m) => console.log(m.presentarse()));
-
-// El código que recorre no necesita saber de qué clase es cada uno
-const totalHoras = comunidad.reduce((acc, m) => acc + m.horasSemanales(), 0);
-console.log(`Total de horas de la comunidad: ${totalHoras}`);
-
-// Si hace falta distinguir, se usa instanceof
-const soloDocentes = comunidad.filter((m) => m instanceof Docente);
-console.log(`Docentes (incluidos tutores): ${soloDocentes.length}`);
+console.log("Nombres ->", extraer(alumnos.todos(), "nombre")); // string[]
+console.log("Horas   ->", extraer(modulos.todos(), "horas")); // number[]
+// extraer(modulos.todos(), "ciclo");   // ❌ "ciclo" no es clave de Modulo
 
 export {};

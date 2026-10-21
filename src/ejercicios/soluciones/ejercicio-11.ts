@@ -1,79 +1,90 @@
 /**
- * EJERCICIO 11 — Estados de la matrícula
- * Capítulo 09 (enum y unión de literales)
+ * EJERCICIO 11 — Contratos con interfaces
+ * Capítulo 10 (interface, extends, propiedades función, declaration merging)
  */
 
-// --- OPCIÓN A: enum de cadenas ---
-enum EstadoMatricula {
-  Preinscrita = "PREINSCRITA",
-  Confirmada = "CONFIRMADA",
-  Anulada = "ANULADA",
+// 1. Interfaz base
+interface Persona {
+  readonly id: number;
+  nombre: string;
+  email?: string;
 }
 
-function mensaje(estado: EstadoMatricula): string {
-  switch (estado) {
-    case EstadoMatricula.Preinscrita:
-      return "Pendiente de confirmar el pago";
-    case EstadoMatricula.Confirmada:
-      return "Matrícula en vigor";
-    case EstadoMatricula.Anulada:
-      return "Matrícula anulada";
-  }
+// 2. Extender: un alumno ES una persona y además tiene sus datos
+interface Alumno extends Persona {
+  expediente: number;
+  ciclo: "DAM" | "DAW" | "ASIR";
 }
 
-console.log(`enum -> ${EstadoMatricula.Confirmada}: ${mensaje(EstadoMatricula.Confirmada)}`);
-console.log("enum, todos los valores ->", Object.values(EstadoMatricula));
+// 3. Extender de varias a la vez
+interface Docente extends Persona {
+  departamento: string;
+}
 
-// --- OPCIÓN B: unión de literales (lo habitual hoy en Angular) ---
-type Estado = "PREINSCRITA" | "CONFIRMADA" | "ANULADA";
+interface Tutor extends Docente {
+  grupo: string;
+}
 
-const estadoActual: Estado = "PREINSCRITA";
-console.log(`unión -> ${estadoActual}`);
+const alumna: Alumno = {
+  id: 1,
+  nombre: "Ana Serrano",
+  expediente: 1001,
+  ciclo: "DAM",
+};
+
+const tutor: Tutor = {
+  id: 50,
+  nombre: "Carlos Mendoza",
+  email: "jose@ies.es",
+  departamento: "Informática",
+  grupo: "DAM2",
+};
+
+console.log(`Alumna: ${alumna.nombre} (${alumna.ciclo}), expediente ${alumna.expediente}`);
+console.log(`Tutor:  ${tutor.nombre}, ${tutor.departamento}, grupo ${tutor.grupo}`);
 
 /**
- * La unión NO genera código: desaparece al transpilar.
- * A cambio, no se puede recorrer con Object.values().
+ * 4. Propiedades de tipo función: la interfaz describe QUÉ debe saber hacer
+ *    un objeto, no CÓMO lo hace.
  */
+interface Calculadora {
+  media(notas: number[]): number;
+  aprobado: (nota: number) => boolean;
+}
+
+const calculadora: Calculadora = {
+  // los tipos se infieren del contrato: no hay que repetirlos
+  media: (notas) => notas.reduce((a, n) => a + n, 0) / notas.length,
+  aprobado: (nota) => nota >= 5,
+};
+
+console.log(`Media -> ${calculadora.media([7, 8, 9]).toFixed(2)}`);
+console.log(`¿4.5 aprueba? -> ${calculadora.aprobado(4.5)}`);
 
 /**
- * POR QUÉ NO USAR ENUM NUMÉRICO.
- * Si el estado se guarda como número y alguien inserta un valor
- * al principio, todos los datos antiguos cambian de significado
- * sin que el compilador diga nada.
+ * 5. Declaration merging: dos interfaces con el mismo nombre se FUSIONAN.
+ *    Los `type` no pueden hacer esto.
+ *
+ * ⚠️ OJO: la fusión afecta a TODO el fichero, no solo de aquí en adelante.
+ *    Si añadiésemos `fechaAlta: Date` a la interfaz Alumno de arriba,
+ *    el objeto `alumna` (declarado antes) dejaría de compilar.
+ *    Por eso aquí se usa otra interfaz distinta.
  */
-enum EstadoV1 {
-  Preinscrita, // 0
-  Confirmada, // 1
-  Anulada, // 2
+interface Matricula {
+  curso: string;
 }
 
-const guardadoEnBD = 1; // significaba "Confirmada"
-console.log(`V1: el ${guardadoEnBD} es ${EstadoV1[guardadoEnBD]}`);
-
-enum EstadoV2 {
-  Borrador, // 0  <-- insertado después
-  Preinscrita, // 1
-  Confirmada, // 2
-  Anulada, // 3
+interface Matricula {
+  confirmada: boolean;
 }
-console.log(`V2: el mismo ${guardadoEnBD} ahora es ${EstadoV2[guardadoEnBD]} ❌`);
 
-// Recuento de matrículas por estado
-const matriculas: Estado[] = [
-  "CONFIRMADA",
-  "PREINSCRITA",
-  "CONFIRMADA",
-  "ANULADA",
-  "CONFIRMADA",
-];
+// Matricula ahora exige las dos propiedades, vengan de donde vengan
+const matricula: Matricula = { curso: "2024/25", confirmada: true };
+console.log(`Matrícula ${matricula.curso} confirmada: ${matricula.confirmada}`);
 
-const recuento = matriculas.reduce<Record<Estado, number>>(
-  (acc, e) => {
-    acc[e]++;
-    return acc;
-  },
-  { PREINSCRITA: 0, CONFIRMADA: 0, ANULADA: 0 },
-);
-console.log("Recuento ->", recuento);
+/**
+ * Esto sirve para ampliar tipos de una librería sin tocar su código.
+ * Con `type` sería imposible: daría "Duplicate identifier".
+ */
 
 export {};

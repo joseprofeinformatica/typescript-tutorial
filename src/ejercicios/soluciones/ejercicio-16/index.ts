@@ -1,8 +1,8 @@
 /**
- * EJERCICIO 17 — Repartir el código en módulos
+ * EJERCICIO 16 — Repartir el código en módulos
  * Capítulo 14 (import / export, import type, barrel files)
  *
- * Ejecutar: npm run play -- src/ejercicios/soluciones/ejercicio-17/index.ts
+ * Ejecutar: npm run play -- src/ejercicios/soluciones/ejercicio-16/index.ts
  */
 
 // Import desde el BARREL: no hace falta la ruta completa al fichero

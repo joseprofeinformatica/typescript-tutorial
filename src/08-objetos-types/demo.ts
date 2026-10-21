@@ -97,58 +97,6 @@ console.log("assertion ->", comoTexto.length);
 // const roto = "hola" as unknown as number;
 // console.log(roto.toFixed(2));   // Compila, pero explota en ejecución.
 
-// ---------- Type guards personalizados ----------
-/**
- * Una aserción `as` obliga al compilador a callarse, pero no comprueba nada.
- * Un TYPE GUARD sí comprueba, y además le enseña a TypeScript lo que ha averiguado.
- * La clave es el tipo de retorno: `dato is Alumno` en vez de `boolean`.
- */
-type Alumno = { nombre: string; curso: string };
-
-function esAlumno(dato: unknown): dato is Alumno {
-  return (
-    typeof dato === "object" &&
-    dato !== null &&
-    "nombre" in dato &&
-    "curso" in dato &&
-    typeof dato.nombre === "string" &&
-    typeof dato.curso === "string"
-  );
-}
-
-// Simula algo que llega de fuera (una API, un JSON, un formulario)
-const deLaApi: unknown = { nombre: "Ana", curso: "DAM" };
-const basura: unknown = { titulo: "no soy un alumno" };
-
-// Dentro del if, TypeScript ya trata `deLaApi` como Alumno: autocompleta y valida
-if (esAlumno(deLaApi)) {
-  console.log(`type guard -> ${deLaApi.nombre} estudia ${deLaApi.curso}`);
-}
-
-console.log("¿basura es Alumno? ->", esAlumno(basura)); // false
-
-// ---------- Narrowing con `in` y `instanceof` ----------
-type Perro = { ladrar: () => void };
-type Gato = { maullar: () => void };
-
-function hacerSonido(animal: Perro | Gato): void {
-  // `in` comprueba si la propiedad existe y estrecha el tipo
-  if ("ladrar" in animal) {
-    animal.ladrar();
-  } else {
-    animal.maullar();
-  }
-}
-
-hacerSonido({ ladrar: () => console.log("in -> Guau") });
-hacerSonido({ maullar: () => console.log("in -> Miau") });
-
-// `instanceof` estrecha entre clases
-function formatear(valor: Date | string): string {
-  return valor instanceof Date ? valor.toISOString().slice(0, 10) : valor;
-}
-console.log("instanceof ->", formatear(new Date("2025-09-16")), "|", formatear("ya es texto"));
-
 // ---------- Objetos anidados y desestructuración ----------
 type Pedido = {
   id: number;

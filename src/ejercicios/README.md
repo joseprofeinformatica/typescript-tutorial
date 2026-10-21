@@ -1,6 +1,6 @@
 # Ejercicios
 
-Diecinueve ejercicios repartidos en tres bloques, todos sobre el **mismo hilo conductor**: la gestión académica de un ciclo formativo. Cada bloque parte de donde lo dejó el anterior, así que al terminar tendrás un mini-sistema completo construido con todo lo del curso.
+Dieciocho ejercicios repartidos en tres bloques, todos sobre el **mismo hilo conductor**: la gestión académica de un ciclo formativo. Cada bloque parte de donde lo dejó el anterior, así que al terminar tendrás un mini-sistema completo construido con todo lo del curso.
 
 Los enunciados, con la salida esperada de cada uno, están en el [README principal](../../README.md#contenido).
 
@@ -26,25 +26,24 @@ npm run play -- src/ejercicios/soluciones/ejercicio-01.ts
 | 07 | [Funciones del cuaderno](soluciones/ejercicio-07.ts) | 07 | Parámetros por defecto, opcionales, `rest`, unión + narrowing |
 | 08 | [Criterios intercambiables](soluciones/ejercicio-08.ts) | 07 | Callbacks tipadas, `this` en arrow functions |
 | 09 | [Modelar el alumno con `type`](soluciones/ejercicio-09.ts) | 08 | Uniones de literales, `readonly`, opcionales, `&`, template literal types |
-| 10 | [Validar lo que llega de fuera](soluciones/ejercicio-10.ts) | 08 | Type guards (`x is T`), narrowing con `in`, `unknown` |
-| 11 | [Estados de la matrícula](soluciones/ejercicio-11.ts) | 09 | `enum`, unión de literales, el bug del enum numérico |
-| 12 | [Contratos con interfaces](soluciones/ejercicio-12.ts) | 10 | `extends` encadenado, propiedades función, merging |
-| 13 | [El expediente como clase](soluciones/ejercicio-13.ts) | 11 | Encapsulación, getters, miembros estáticos, validación |
-| 14 | [Jerarquía del personal](soluciones/ejercicio-14.ts) | 11 | Clase abstracta, herencia en 3 niveles, `override`, `super`, polimorfismo |
+| 10 | [Estados de la matrícula](soluciones/ejercicio-10.ts) | 09 | `enum`, unión de literales, el bug del enum numérico |
+| 11 | [Contratos con interfaces](soluciones/ejercicio-11.ts) | 10 | `extends` encadenado, propiedades función, merging |
+| 12 | [El expediente como clase](soluciones/ejercicio-12.ts) | 11 | Encapsulación, getters, miembros estáticos, validación |
+| 13 | [Jerarquía del personal](soluciones/ejercicio-13.ts) | 11 | Clase abstracta, herencia en 3 niveles, `override`, `super`, polimorfismo |
 
 ## Bloque 3 — Hacia Angular (capítulos 12-16)
 
 | Nº | Título | Capítulos | Conceptos |
 |----|--------|-----------|-----------|
-| 15 | [Un repositorio para cualquier entidad](soluciones/ejercicio-15.ts) | 12 | Genéricos, restricción `extends`, `keyof`, `Map` |
-| 16 | [Un modelo, muchas vistas](soluciones/ejercicio-16.ts) | 13 | `Omit`, `Pick`, `Partial`, `Record`, `ReturnType`, indexed access |
-| 17 | [Repartir el código en módulos](soluciones/ejercicio-17/) | 14 | `import`/`export`, `import type`, barrel file, estructura Angular |
-| 18 | [Cargar las notas del servidor](soluciones/ejercicio-18.ts) | 15 | `Promise<T>`, `async`/`await`, `Promise.all`, `allSettled`, `fetch` |
-| 19 | [Decoradores académicos](soluciones/ejercicio-19.ts) | 16 | Decoradores de clase, método, propiedad y parámetro; factories |
+| 14 | [Un repositorio para cualquier entidad](soluciones/ejercicio-14.ts) | 12 | Genéricos, restricción `extends`, `keyof`, `Map` |
+| 15 | [Un modelo, muchas vistas](soluciones/ejercicio-15.ts) | 13 | `Omit`, `Pick`, `Partial`, `Record`, `ReturnType`, indexed access |
+| 16 | [Repartir el código en módulos](soluciones/ejercicio-16/) | 14 | `import`/`export`, `import type`, barrel file, estructura Angular |
+| 17 | [Cargar las notas del servidor](soluciones/ejercicio-17.ts) | 15 | `Promise<T>`, `async`/`await`, `Promise.all`, `allSettled`, `fetch` |
+| 18 | [Decoradores académicos](soluciones/ejercicio-18.ts) | 16 | Decoradores de clase, método, propiedad y parámetro; factories |
 
-> El ejercicio 17 es **multi-fichero**. Se ejecuta con:
+> El ejercicio 16 es **multi-fichero**. Se ejecuta con:
 > ```bash
-> npm run play -- src/ejercicios/soluciones/ejercicio-17/index.ts
+> npm run play -- src/ejercicios/soluciones/ejercicio-16/index.ts
 > ```
 
 ## Cómo trabajarlos

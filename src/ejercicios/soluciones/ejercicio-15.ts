@@ -1,91 +1,100 @@
 /**
- * EJERCICIO 15 — Un repositorio que sirva para cualquier entidad
- * Capítulo 12 (genéricos, restricciones, keyof)
+ * EJERCICIO 15 — Un modelo, muchas vistas
+ * Capítulo 13 (Partial, Pick, Omit, Record, ReturnType)
  */
 
 interface Alumno {
   id: number;
   nombre: string;
-  ciclo: "DAM" | "DAW";
+  email: string;
+  password: string;
+  ciclo: "DAM" | "DAW" | "ASIR";
+  activo: boolean;
 }
-interface Modulo {
-  id: number;
-  titulo: string;
-  horas: number;
-}
+
+const ana: Alumno = {
+  id: 1,
+  nombre: "Ana Serrano",
+  email: "ana@ies.es",
+  password: "secreta",
+  ciclo: "DAM",
+  activo: true,
+};
 
 /**
- * La restricción `T extends { id: number }` es lo que permite escribir
- * `item.id` dentro de la clase. Sin ella el compilador no sabría
- * que ese campo existe.
+ * La idea del capítulo: se declara el modelo UNA vez y todo lo demás
+ * se DERIVA. Si mañana añades un campo a Alumno, todos los tipos
+ * derivados se actualizan solos.
  */
-class Repositorio<T extends { id: number }> {
-  private datos = new Map<number, T>();
 
-  guardar(item: T): void {
-    this.datos.set(item.id, item);
-  }
+// 1. Lo que se envía al crear: todo menos el id, que lo genera el servidor
+type NuevoAlumno = Omit<Alumno, "id">;
 
-  // Devuelve T | undefined porque Map.get() puede no encontrar nada
-  porId(id: number): T | undefined {
-    return this.datos.get(id);
-  }
+const nuevo: NuevoAlumno = {
+  nombre: "Luis Gil",
+  email: "luis@ies.es",
+  password: "1234",
+  ciclo: "DAW",
+  activo: true,
+};
+console.log("Alta ->", nuevo.nombre, nuevo.ciclo);
 
-  todos(): T[] {
-    return [...this.datos.values()];
-  }
+// 2. Lo que devuelve la API: todo menos la contraseña
+type AlumnoPublico = Omit<Alumno, "password">;
 
-  // Callback genérica: el criterio lo pone quien llama
-  buscar(criterio: (item: T) => boolean): T[] {
-    return this.todos().filter(criterio);
-  }
-
-  borrar(id: number): boolean {
-    return this.datos.delete(id);
-  }
-
-  get cantidad(): number {
-    return this.datos.size;
-  }
+function aPublico(a: Alumno): AlumnoPublico {
+  const { password, ...resto } = a; // se extrae password y el resto se queda
+  return resto;
 }
+console.log("Público ->", aPublico(ana));
 
-// Una sola clase, dos entidades distintas y totalmente tipadas
-const alumnos = new Repositorio<Alumno>();
-alumnos.guardar({ id: 1, nombre: "Ana Serrano", ciclo: "DAM" });
-alumnos.guardar({ id: 2, nombre: "Luis Gil", ciclo: "DAW" });
-alumnos.guardar({ id: 3, nombre: "Marta Ruiz", ciclo: "DAM" });
+// 3. Lo que se muestra en el listado: solo dos campos
+type FilaListado = Pick<Alumno, "id" | "nombre">;
 
-const modulos = new Repositorio<Modulo>();
-modulos.guardar({ id: 10, titulo: "Programación", horas: 256 });
-modulos.guardar({ id: 11, titulo: "Bases de Datos", horas: 192 });
+const listado: FilaListado[] = [
+  { id: 1, nombre: "Ana Serrano" },
+  { id: 2, nombre: "Luis Gil" },
+];
+console.log("Listado ->", listado);
 
-console.log("Alumno 2 ->", alumnos.porId(2));
-console.log(
-  "De DAM   ->",
-  alumnos.buscar((a) => a.ciclo === "DAM").map((a) => a.nombre),
-);
-console.log(
-  "Módulos largos ->",
-  modulos.buscar((m) => m.horas > 200).map((m) => m.titulo),
-);
-console.log(`Alumnos: ${alumnos.cantidad} | Módulos: ${modulos.cantidad}`);
-
-console.log("Borrar id 3 ->", alumnos.borrar(3));
-console.log("Borrar id 9 ->", alumnos.borrar(9));
-console.log(`Quedan ${alumnos.cantidad} alumnos`);
-
-// alumnos.guardar({ id: 4, titulo: "x", horas: 1 });  // ❌ no es un Alumno
-
-/**
- * Función genérica con `keyof`: la clave debe existir en T, y el tipo
- * del resultado CAMBIA según la clave que pidas.
- */
-function extraer<T, K extends keyof T>(items: T[], clave: K): T[K][] {
-  return items.map((item) => item[clave]);
+// 4. Edición parcial: llegan solo los campos que cambian
+function actualizar(original: Alumno, cambios: Partial<Alumno>): Alumno {
+  return { ...original, ...cambios };
 }
+const editada = actualizar(ana, { email: "ana.serrano@ies.es", activo: false });
+console.log(`Editada -> ${editada.email}, activa: ${editada.activo}`);
 
-console.log("Nombres ->", extraer(alumnos.todos(), "nombre")); // string[]
-console.log("Horas   ->", extraer(modulos.todos(), "horas")); // number[]
-// extraer(modulos.todos(), "ciclo");   // ❌ "ciclo" no es clave de Modulo
+// 5. Record: tabla de permisos con claves cerradas.
+//    Si añades un rol a la unión, el compilador te obliga a definirlo.
+type Rol = "alumno" | "docente" | "secretaria";
+
+const permisos: Record<Rol, string[]> = {
+  alumno: ["ver-notas"],
+  docente: ["ver-notas", "poner-notas"],
+  secretaria: ["ver-notas", "matricular", "anular"],
+};
+console.log("Permisos docente ->", permisos.docente);
+
+// 6. Agrupar alumnos por ciclo con Record
+type Ciclo = Alumno["ciclo"]; // indexed access: extrae el tipo de una propiedad
+
+const porCiclo: Record<Ciclo, string[]> = { DAM: [], DAW: [], ASIR: [] };
+[ana, { ...nuevo, id: 2 } as Alumno].forEach((a) => porCiclo[a.ciclo].push(a.nombre));
+console.log("Por ciclo ->", porCiclo);
+
+// 7. ReturnType: nombrar lo que ya devuelve una función, sin repetirlo
+function generarCredenciales(a: Alumno) {
+  return { usuario: a.email.split("@")[0], expira: 30 };
+}
+type Credenciales = ReturnType<typeof generarCredenciales>;
+
+const cred: Credenciales = generarCredenciales(ana);
+console.log(`Credenciales -> ${cred.usuario}, expira en ${cred.expira} días`);
+
+// 8. Formulario de edición: id obligatorio, el resto opcional, sin password
+type FormularioEdicion = Pick<Alumno, "id"> & Partial<Omit<Alumno, "id" | "password">>;
+
+const form: FormularioEdicion = { id: 1, ciclo: "ASIR" };
+console.log("Formulario ->", form);
 
 export {};

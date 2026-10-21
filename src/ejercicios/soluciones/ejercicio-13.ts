@@ -1,87 +1,108 @@
 /**
- * EJERCICIO 13 — El expediente como clase
- * Capítulo 11 (encapsulación, getters/setters, estáticos)
+ * EJERCICIO 13 — Jerarquía del personal del centro
+ * Capítulo 11 (clases abstractas, herencia, override, polimorfismo)
  */
 
-class Expediente {
-  // Atajo del constructor: declara Y asigna. Es lo que verás en Angular.
+/**
+ * Clase abstracta: no se puede instanciar.
+ * Define lo común y OBLIGA a las hijas a completar lo que falta.
+ */
+abstract class MiembroComunidad {
   constructor(
-    public readonly numero: number,
+    public readonly id: number,
     public nombre: string,
-    private notas: number[] = [],
   ) {}
 
-  // Contador compartido por TODAS las instancias
-  private static creados = 0;
+  // Sin cuerpo: cada hija lo resuelve a su manera
+  abstract get rol(): string;
+  abstract horasSemanales(): number;
 
-  static registrar(nombre: string): Expediente {
-    Expediente.creados++;
-    return new Expediente(1000 + Expediente.creados, nombre);
-  }
-
-  static get total(): number {
-    return Expediente.creados;
-  }
-
-  /**
-   * El array de notas es privado: nadie puede meter un 15 desde fuera.
-   * La única vía de entrada valida el dato.
-   */
-  anadirNota(nota: number): void {
-    if (nota < 0 || nota > 10) {
-      throw new Error(`Nota fuera de rango: ${nota}`);
-    }
-    this.notas.push(nota);
-  }
-
-  // Getter: se usa SIN paréntesis, como si fuera una propiedad
-  get media(): number {
-    if (this.notas.length === 0) return 0;
-    return this.notas.reduce((a, n) => a + n, 0) / this.notas.length;
-  }
-
-  get calificacion(): string {
-    const m = this.media;
-    if (m >= 9) return "Sobresaliente";
-    if (m >= 7) return "Notable";
-    if (m >= 5) return "Suficiente";
-    return "Insuficiente";
-  }
-
-  // Devuelve una COPIA: así nadie modifica el array interno
-  get historial(): number[] {
-    return [...this.notas];
+  // Concreto: se hereda tal cual y usa los métodos abstractos
+  presentarse(): string {
+    return `${this.nombre} (${this.rol}) — ${this.horasSemanales()} h/semana`;
   }
 }
 
-const ana = Expediente.registrar("Ana Serrano");
-ana.anadirNota(8);
-ana.anadirNota(9.5);
-ana.anadirNota(7);
+class Alumno extends MiembroComunidad {
+  constructor(
+    id: number,
+    nombre: string,
+    private modulos: number,
+  ) {
+    super(id, nombre); // obligatorio antes de usar `this`
+  }
 
-console.log(`Expediente ${ana.numero} — ${ana.nombre}`);
-console.log(`Notas: ${ana.historial.join(", ")}`);
-console.log(`Media: ${ana.media.toFixed(2)} (${ana.calificacion})`);
+  override get rol(): string {
+    return "Alumno";
+  }
 
-const luis = Expediente.registrar("Luis Gil");
-luis.anadirNota(4);
-console.log(`Expediente ${luis.numero} — ${luis.nombre}: ${luis.calificacion}`);
-
-console.log(`Expedientes creados: ${Expediente.total}`);
-
-// La encapsulación protege los datos:
-try {
-  ana.anadirNota(15);
-} catch (error) {
-  if (error instanceof Error) console.log(`Rechazado -> ${error.message}`);
+  override horasSemanales(): number {
+    return this.modulos * 4;
+  }
 }
 
-// Modificar la copia no afecta al original
-const copia = ana.historial;
-copia.push(10);
-console.log(`Historial real tras tocar la copia: ${ana.historial.length} notas`);
+class Docente extends MiembroComunidad {
+  constructor(
+    id: number,
+    nombre: string,
+    protected grupos: number,
+  ) {
+    super(id, nombre);
+  }
 
-// ana.notas.push(15);   // ❌ Error: 'notas' is private
-// ana.numero = 9999;    // ❌ Error: 'numero' is readonly
+  override get rol(): string {
+    return "Docente";
+  }
+
+  override horasSemanales(): number {
+    return 18 + this.grupos * 2;
+  }
+}
+
+/**
+ * Tres niveles de herencia. `override` es obligatorio en este proyecto
+ * y en Angular ("noImplicitOverride"): avisa si el padre cambia el método.
+ */
+class Tutor extends Docente {
+  constructor(
+    id: number,
+    nombre: string,
+    grupos: number,
+    private grupoTutorizado: string,
+  ) {
+    super(id, nombre, grupos);
+  }
+
+  override get rol(): string {
+    return `Tutor de ${this.grupoTutorizado}`;
+  }
+
+  // super.x() llama a la versión del padre y le suma lo propio
+  override horasSemanales(): number {
+    return super.horasSemanales() + 3;
+  }
+}
+
+// const x = new MiembroComunidad(1, "Nadie");  // ❌ no se puede instanciar
+
+/**
+ * POLIMORFISMO: un array de la clase base, pero cada elemento
+ * ejecuta SU propia versión de rol() y horasSemanales().
+ */
+const comunidad: MiembroComunidad[] = [
+  new Alumno(1, "Ana Serrano", 5),
+  new Docente(50, "Marta Ruiz", 3),
+  new Tutor(51, "Carlos Mendoza", 3, "DAM2"),
+];
+
+comunidad.forEach((m) => console.log(m.presentarse()));
+
+// El código que recorre no necesita saber de qué clase es cada uno
+const totalHoras = comunidad.reduce((acc, m) => acc + m.horasSemanales(), 0);
+console.log(`Total de horas de la comunidad: ${totalHoras}`);
+
+// Si hace falta distinguir, se usa instanceof
+const soloDocentes = comunidad.filter((m) => m instanceof Docente);
+console.log(`Docentes (incluidos tutores): ${soloDocentes.length}`);
 
 export {};

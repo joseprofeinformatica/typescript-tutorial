@@ -33,7 +33,7 @@
     {
       // Depura el JavaScript real de build/. Gracias a "sourceMap": true del
       // tsconfig.json, los breakpoints se siguen poniendo en el .ts.
-      // Ojo: no sirve para el capítulo 14 ni el ejercicio 17 (ver README).
+      // Ojo: no sirve para el capítulo 14 ni el ejercicio 16 (ver README).
       "name": "JS: depurar el transpilado de build/",
       "type": "node",
       "request": "launch",

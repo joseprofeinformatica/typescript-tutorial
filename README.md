@@ -41,7 +41,7 @@ Material del módulo de introducción a **TypeScript**, como paso previo al desa
 
 Cada capítulo del manual tiene una carpeta en `src/` con un fichero `demo.ts` **ejecutable y comentado**. El README explica, la demo se ejecuta: van en paralelo.
 
-Entre los capítulos hay **tres bloques de ejercicios** (19 en total) que comparten un hilo conductor: la gestión académica de un ciclo formativo.
+Entre los capítulos hay **tres bloques de ejercicios** (18 en total) que comparten un hilo conductor: la gestión académica de un ciclo formativo.
 
 | # | Capítulo | Carpeta en `src/` |
 |---|---|---|
@@ -277,7 +277,7 @@ src/
   16-decoradores/
   ejercicios/
     README.md
-    soluciones/       ejercicio-01.ts ... ejercicio-19.ts
+    soluciones/       ejercicio-01.ts ... ejercicio-18.ts
 ```
 
 ## Sobre la configuración
@@ -1043,7 +1043,7 @@ Una función solo puede devolver un valor, pero si ese valor es una tupla puedes
 
 > 📁 Soluciones comentadas: [`src/ejercicios/`](src/ejercicios/README.md)
 
-Los diecinueve ejercicios del curso cuentan una misma historia: la **gestión académica de un ciclo formativo** (grupos, alumnos, notas, matrículas…). Este primer bloque corresponde a los capítulos 01 a 06.
+Los dieciocho ejercicios del curso cuentan una misma historia: la **gestión académica de un ciclo formativo** (grupos, alumnos, notas, matrículas…). Este primer bloque corresponde a los capítulos 01 a 06.
 
 ## Cómo trabajar cada ejercicio
 
@@ -1614,82 +1614,6 @@ console.log("assertion ->", comoTexto.length);
 > // const roto = "hola" as unknown as number;
 > // console.log(roto.toFixed(2));   // Compila, pero explota en ejecución.
 > ```
-
-## Type guards personalizados
-
-Una aserción `as` obliga al compilador a callarse, pero **no comprueba nada**. Un *type guard* sí comprueba, y además le enseña a TypeScript lo que ha averiguado.
-
-La clave está en el tipo de retorno: en lugar de `boolean`, se escribe `dato is Alumno`.
-
-```ts
-type Alumno = { nombre: string; curso: string };
-
-function esAlumno(dato: unknown): dato is Alumno {
-  return (
-    typeof dato === "object" &&
-    dato !== null &&
-    "nombre" in dato &&
-    "curso" in dato &&
-    typeof dato.nombre === "string" &&
-    typeof dato.curso === "string"
-  );
-}
-```
-
-Cada línea del `return` va estrechando el tipo para la siguiente: tras `typeof dato === "object"` y `dato !== null`, TypeScript ya permite usar `in`; y tras `"nombre" in dato`, permite leer `dato.nombre`. Por eso no hace falta ninguna aserción `as` dentro del propio guard.
-
-A partir de ahí, dentro del `if` TypeScript trata el valor como un `Alumno`: autocompleta sus propiedades y detecta errores.
-
-```ts
-// Simula algo que llega de fuera (una API, un JSON, un formulario)
-const deLaApi: unknown = { nombre: "Ana", curso: "DAM" };
-const basura: unknown = { titulo: "no soy un alumno" };
-
-// Dentro del if, TypeScript ya trata `deLaApi` como Alumno: autocompleta y valida
-if (esAlumno(deLaApi)) {
-  console.log(`type guard -> ${deLaApi.nombre} estudia ${deLaApi.curso}`);
-}
-
-console.log("¿basura es Alumno? ->", esAlumno(basura)); // false
-```
-
-Esta es la forma correcta de tratar datos que vienen de fuera: una API, un `JSON.parse` o un formulario. Con `as Alumno` le prometes al compilador algo que no has verificado; con `esAlumno()` lo compruebas de verdad.
-
-## Narrowing con `in` y con `instanceof`
-
-Además de `typeof`, hay otras dos formas de estrechar un tipo.
-
-`in` comprueba si una propiedad existe:
-
-```ts
-type Perro = { ladrar: () => void };
-type Gato = { maullar: () => void };
-
-function hacerSonido(animal: Perro | Gato): void {
-  // `in` comprueba si la propiedad existe y estrecha el tipo
-  if ("ladrar" in animal) {
-    animal.ladrar();
-  } else {
-    animal.maullar();
-  }
-}
-```
-
-`instanceof` distingue entre clases:
-
-```ts
-// `instanceof` estrecha entre clases
-function formatear(valor: Date | string): string {
-  return valor instanceof Date ? valor.toISOString().slice(0, 10) : valor;
-}
-```
-
-| Técnica | Sirve para |
-|---|---|
-| `typeof x === "string"` | Tipos primitivos |
-| `"prop" in objeto` | Distinguir objetos por sus propiedades |
-| `x instanceof Clase` | Distinguir clases (y el `catch` de errores) |
-| `function f(x): x is T` | Cualquier comprobación propia, por compleja que sea |
 
 ## Objetos anidados y desestructuración
 
@@ -2361,7 +2285,7 @@ A través del tipo base solo se ve lo que declara el tipo base. `Figura` no tien
 // figuras[0].radio;   // Error: Property 'radio' does not exist on type 'Figura'.
 ```
 
-Cuando necesites saber de qué clase es cada objeto, usa `instanceof`, que viste en el capítulo 08:
+Cuando necesites saber de qué clase es cada objeto, usa `instanceof`. Comprueba si un objeto se creó con una clase concreta o con una de sus hijas:
 
 ```ts
 const circulos = figuras.filter((f) => f instanceof Circulo).length;
@@ -2507,46 +2431,7 @@ Códigos válidos -> [ 'DAM1', 'DAM2', 'DAW1', 'ASIR2' ]
 
 ---
 
-### Ejercicio 10 — Validar lo que llega de fuera
-*Capítulo 08* · **Practicarás:** comprobar datos de tipo `unknown` con *type guards* y distinguir tipos con `in`.
-
-Los datos que llegan de una API no son de fiar: les pueden faltar campos o traerlos con el tipo equivocado. Por eso se reciben como `unknown` y hay que comprobarlos antes de usarlos.
-
-Parte de estas tres respuestas simuladas, guardadas en un array de tipo `unknown[]`:
-
-```ts
-{ expediente: 1001, nombre: "Ana Serrano", ciclo: "DAM" }   // correcta
-{ expediente: "1002", nombre: "Luis Gil", ciclo: "DAW" }    // el expediente es un texto
-{ nombre: "Marta Ruiz", ciclo: "MECATRONICA" }              // sin expediente y con un ciclo que no existe
-```
-
-**Pasos**
-
-1. Escribe `esCiclo(valor)`, que diga si un valor es `"DAM"`, `"DAW"` o `"ASIR"`. Su tipo de retorno debe ser `valor is Ciclo`.
-2. Escribe `esAlumno(dato)`, con tipo de retorno `dato is Alumno`. Debe comprobar **de verdad** que el dato es un objeto, que no es `null`, que tiene las tres propiedades y que cada una es del tipo correcto. Para el ciclo, usa `esCiclo`.
-3. Recorre las respuestas: guarda las válidas en un array y muestra las descartadas. Termina indicando cuántas se han importado.
-4. Define dos tipos: `Matriculado` (nombre y expediente) y `Preinscrito` (nombre y fecha de solicitud). Escribe una función que acepte cualquiera de los dos y muestre un mensaje distinto según cuál sea.
-
-> 💡 **Pistas**
-> - Un *type guard* es una función que devuelve `true` o `false`, pero cuyo tipo de retorno es `dato is Alumno`. Cuando devuelve `true`, dentro del `if` TypeScript ya trata el dato como un `Alumno` y te deja usar sus propiedades.
-> - No uses `dato as Alumno`: eso solo silencia al compilador, no comprueba nada.
-> - Para distinguir los dos tipos del paso 4: `if ("expediente" in persona)`.
-> - Para mostrar un objeto descartado como texto: `JSON.stringify(dato)`.
-
-**Salida esperada**
-
-```
-✅ Válido: Ana Serrano (DAM)
-❌ Descartado: {"expediente":"1002","nombre":"Luis Gil","ciclo":"DAW"}
-❌ Descartado: {"nombre":"Marta Ruiz","ciclo":"MECATRONICA"}
-Importados 1 de 3
-Ana: matriculado, expediente 1001
-Sofía: preinscrito el 2025-06-20
-```
-
----
-
-### Ejercicio 11 — Estados de la matrícula
+### Ejercicio 10 — Estados de la matrícula
 *Capítulo 09* · **Practicarás:** `enum` y uniones de literales, y por qué conviene evitar los `enum` numéricos.
 
 Una matrícula puede estar preinscrita, confirmada o anulada. Vas a representar esos tres estados de dos formas distintas para compararlas.
@@ -2573,7 +2458,7 @@ Recuento -> { PREINSCRITA: 1, CONFIRMADA: 3, ANULADA: 1 }
 
 ---
 
-### Ejercicio 12 — Contratos con interfaces
+### Ejercicio 11 — Contratos con interfaces
 *Capítulo 10* · **Practicarás:** `interface`, herencia con `extends`, métodos en interfaces y *declaration merging*.
 
 **Pasos**
@@ -2598,7 +2483,7 @@ Matrícula 2024/25 confirmada: true
 
 ---
 
-### Ejercicio 13 — El expediente como clase
+### Ejercicio 12 — El expediente como clase
 *Capítulo 11* · **Practicarás:** clases, `private` y `readonly`, el atajo del constructor, miembros `static` y *getters*.
 
 El expediente de un alumno guarda sus notas. Nadie debería poder meter un 15 ni tocar las notas desde fuera de la clase.
@@ -2633,7 +2518,7 @@ Historial real tras tocar la copia: 3 notas
 
 ---
 
-### Ejercicio 14 — Jerarquía del personal
+### Ejercicio 13 — Jerarquía del personal
 *Capítulo 11* · **Practicarás:** clases abstractas, herencia, `override`, `super` y polimorfismo.
 
 En el centro hay alumnos, docentes y tutores. Todos se presentan de la misma forma, pero cada uno calcula sus horas semanales a su manera.
@@ -3598,7 +3483,7 @@ En el día a día **no vas a escribir decoradores**, pero sí a usarlos continua
 
 ---
 
-### Ejercicio 15 — Un repositorio para cualquier entidad
+### Ejercicio 14 — Un repositorio para cualquier entidad
 *Capítulo 12* · **Practicarás:** genéricos, restricciones con `extends` y `keyof`.
 
 Una aplicación tiene muchos tipos de datos (alumnos, módulos, profesores…) y todos necesitan lo mismo: guardarlos, buscarlos y borrarlos. En vez de escribir una clase para cada uno, escribirás **una sola** que sirva para todos.
@@ -3639,7 +3524,7 @@ Horas   -> [ 256, 192 ]
 
 ---
 
-### Ejercicio 16 — Un modelo, muchas vistas
+### Ejercicio 15 — Un modelo, muchas vistas
 *Capítulo 13* · **Practicarás:** los *utility types* `Omit`, `Pick`, `Partial`, `Record` y `ReturnType`.
 
 Un mismo alumno se usa de formas distintas: al darlo de alta todavía no tiene `id`, al enviarlo al navegador no debe llevar la contraseña, y en un listado solo hacen falta dos campos. En vez de escribir una interfaz para cada caso, las **sacarás todas** de una sola.
@@ -3698,13 +3583,13 @@ Formulario -> { id: 1, ciclo: 'ASIR' }
 
 ---
 
-### Ejercicio 17 — Repartir el código en módulos
+### Ejercicio 16 — Repartir el código en módulos
 *Capítulo 14* · **Practicarás:** `import` y `export`, `import type`, *barrel files* y la organización de carpetas de un proyecto Angular.
 
 Hasta ahora cada ejercicio cabía en un fichero. En Angular, el código se reparte en carpetas según lo que hace cada parte. **Este ejercicio tiene varios ficheros**. Crea esta estructura:
 
 ```
-ejercicio-17/
+ejercicio-16/
   index.ts                     ← el programa principal: usa todo lo demás
   modelos/alumno.model.ts      ← tipos y constantes
   servicios/alumno.service.ts  ← la lógica
@@ -3727,7 +3612,7 @@ ejercicio-17/
 Para ejecutarlo, indica el fichero `index.ts`:
 
 ```bash
-npm run play -- src/ejercicios/soluciones/ejercicio-17/index.ts
+npm run play -- src/ejercicios/soluciones/ejercicio-16/index.ts
 ```
 
 **Salida esperada**
@@ -3747,7 +3632,7 @@ Tras intentar colar un alumno: el servicio sigue con 3
 
 ---
 
-### Ejercicio 18 — Cargar las notas del servidor
+### Ejercicio 17 — Cargar las notas del servidor
 *Capítulo 15* · **Practicarás:** promesas, `async` / `await`, errores con `try` / `catch`, peticiones en paralelo y `fetch`.
 
 Las peticiones a un servidor tardan, y a veces fallan. Como no tienes un servidor propio, lo simularás con una función que tarda un poco en responder.
@@ -3789,7 +3674,7 @@ API -> post 1: sunt aut facere repellat provi…
 
 ---
 
-### Ejercicio 19 — Decoradores académicos
+### Ejercicio 18 — Decoradores académicos
 *Capítulo 16* · **Practicarás:** decoradores de clase, de método, de propiedad y de parámetro, como los que usa Angular (`@Component`, `@Input`…).
 
 Un decorador es una función que se «engancha» con `@` a una clase o a una de sus partes y le añade comportamiento sin cambiar su código.
@@ -4025,7 +3910,7 @@ En la vista **Ejecutar y depurar** (`Ctrl+Mayús+D`) hay un desplegable arriba c
 | **TS: elegir capítulo y depurar** | Muestra una lista con los 16 capítulos. Cómodo en clase, y no depende de qué fichero esté abierto |
 | **JS: depurar el transpilado de build/** | Compila con `npm run build` y depura el **JavaScript generado**. Sirve para comprobar que los breakpoints del `.ts` siguen funcionando sobre el `.js` gracias a los *source maps* |
 
-> **Limitación de la tercera**: no funciona con el capítulo `14-modulos` ni con el `ejercicio-17`.
+> **Limitación de la tercera**: no funciona con el capítulo `14-modulos` ni con el `ejercicio-16`.
 > El `tsconfig.json` usa `"moduleResolution": "bundler"` (como Angular), que permite escribir
 > `import { x } from "./y"` sin extensión. Node exige la extensión `.js` al ejecutar módulos ESM,
 > así que el `build/` de esos dos falla con `ERR_MODULE_NOT_FOUND`.
