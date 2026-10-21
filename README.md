@@ -2140,6 +2140,12 @@ class CuentaBancaria {
   protected saldo: number; // accesible en la clase y en sus hijas
   private pin: string; // accesible SOLO dentro de esta clase
 
+  constructor(titular: string, saldoInicial: number, pin: string) {
+    this.titular = titular;
+    this.saldo = saldoInicial;
+    this.pin = pin;
+  }
+
   ingresar(cantidad: number): void {
     if (cantidad <= 0) throw new Error("La cantidad debe ser positiva");
     this.saldo += cantidad;
