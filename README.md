@@ -3104,7 +3104,7 @@ export class UsuarioComponent { }                        // exportación con nom
 
 > ▶️ `npm run play -- src/15-async/demo.ts`
 
-JavaScript ejecuta **una sola cosa a la vez**. Las operaciones que tardan (una petición de red, leer un fichero, un temporizador) no bloquean el programa: se lanzan y su resultado llega *después*.
+JavaScript ejecuta **una sola cosa a la vez**. Si una operación lenta, como una petición de red, detuviera el programa hasta terminar, la aplicación se quedaría bloqueada. Por eso estas operaciones son **asíncronas**: se lanzan, el programa sigue con la línea siguiente y el resultado llega más tarde.
 
 ```ts
 console.log("1. Empieza el programa");
@@ -3114,11 +3114,27 @@ setTimeout(() => console.log("3. Esto llega después (asíncrono)"), 0);
 console.log("2. Esto se ejecuta antes que el setTimeout");
 ```
 
-Ejecuta la demo y verás los números en orden 1, 2, 3 aunque el `setTimeout` esté escrito en medio y con un retardo de 0 ms. Todo lo asíncrono se aparta y se retoma cuando el hilo principal queda libre.
+Salida:
+
+```
+1. Empieza el programa
+2. Esto se ejecuta antes que el setTimeout
+3. Esto llega después (asíncrono)
+```
+
+El `setTimeout` está escrito antes que el mensaje 2 y tiene un retardo de 0 ms, pero su función no se ejecuta hasta que termina el código que ya está en marcha.
 
 ## `Promise<T>`
 
-Una promesa representa un valor que **todavía no está disponible**. Es genérica: `T` es el tipo que resolverá. Tiene tres estados: *pendiente* → *cumplida* (`resolve`) o *rechazada* (`reject`).
+Una promesa es un objeto que representa un resultado que todavía no está disponible. `Promise<string>` significa: *cuando termine, dará un `string`*. Siempre está en uno de estos tres estados:
+
+| Estado | Significado |
+|---|---|
+| Pendiente | La operación todavía no ha terminado |
+| Cumplida | Ha terminado bien y tiene un valor (`resolve`) |
+| Rechazada | Ha fallado y tiene un error (`reject`) |
+
+Normalmente no crearás promesas a mano: te las devuelven funciones como `fetch`. Aquí creamos una para simular una operación lenta, y la usaremos en el resto del capítulo:
 
 ```ts
 // Promise<T>: es genérico. T es el tipo del valor que resolverá.
@@ -3133,9 +3149,7 @@ function esperar(ms: number): Promise<string> {
 }
 ```
 
-Esta función `esperar` se usa en el resto del capítulo para simular una operación lenta.
-
-## Consumirla con `.then()`
+## Recoger el resultado con `.then()`
 
 ```ts
 esperar(100)
@@ -3145,12 +3159,61 @@ esperar(100)
 ```
 
 - `.then()` recibe el valor si la promesa se cumple.
-- `.catch()` recoge el error si se rechaza.
-- `.finally()` se ejecuta siempre.
+- `.catch()` recibe el error si se rechaza.
+- `.finally()` se ejecuta en los dos casos.
 
-## Consumirla con `async`/`await`
+## Funciones asíncronas: `async` y `await`
 
-Es la misma promesa escrita como si fuese código secuencial. `async` hace que la función devuelva **siempre** una `Promise`; `await` pausa hasta que la promesa resuelva.
+Es la otra forma de recoger el resultado, y la más habitual porque se lee de arriba abajo. Usa dos palabras:
+
+- **`async`**, delante de `function`, declara una función asíncrona.
+- **`await`**, delante de una promesa, espera a que termine y entrega su valor: `await esperar(200)` da un `string`, no una `Promise<string>`.
+
+```ts
+async function mostrarEspera(): Promise<void> {
+  console.log("Antes del await");
+  const mensaje = await esperar(200); // la función se detiene aquí
+  console.log(mensaje);
+}
+
+mostrarEspera();
+console.log("Esto sale antes que el mensaje");
+```
+
+Salida:
+
+```
+Antes del await
+Esto sale antes que el mensaje
+Han pasado 200 ms
+```
+
+Fíjate en el orden. `await` detiene **solo la función en la que está**, no el programa: mientras `mostrarEspera` espera, el código que la llamó sigue ejecutándose.
+
+### Lo que devuelve una función `async`
+
+Una función `async` devuelve **siempre** una promesa, aunque su `return` tenga un valor normal. Por eso su tipo de retorno es `Promise<T>`, y quien la llama necesita `await` para obtener el valor:
+
+```ts
+async function doble(n: number): Promise<number> {
+  return n * 2; // el return da un number; la función devuelve Promise<number>
+}
+
+const resultado = await doble(4);
+console.log(resultado); // 8
+```
+
+Si la función no devuelve nada, su tipo es `Promise<void>`. Estos son los errores que verás más a menudo:
+
+| Código | Error | Mensaje del compilador |
+|---|---|---|
+| `TS1308` | Usar `await` en una función sin `async` | `'await' expressions are only allowed within async functions...` |
+| `TS1064` | Escribir `number` como tipo de retorno de una función `async` | `The return type of an async function or method must be the global Promise<T> type...` |
+| `TS2322` | Olvidar el `await` al llamarla: `const m: string = f();` | `Type 'Promise<string>' is not assignable to type 'string'` |
+
+### Gestionar los errores con `try/catch`
+
+Si la promesa se rechaza, `await` lanza el error en esa línea. Se captura con un `try/catch` normal:
 
 ```ts
 // `async` hace que la función devuelva SIEMPRE una Promise.
@@ -3169,14 +3232,11 @@ async function conAwait(): Promise<void> {
 }
 ```
 
-Dos detalles importantes:
-
-- Los errores se capturan con un `try/catch` normal, no con `.catch()`.
-- En TypeScript, **lo que se captura en un `catch` es de tipo `unknown`**. Hay que comprobar con `instanceof Error` antes de leer `.message`. Es el mismo *narrowing* del capítulo 02.
+En TypeScript, **lo que se captura en un `catch` es de tipo `unknown`**, porque en JavaScript se puede lanzar cualquier valor. Por eso hay que comprobar con `instanceof Error`, que viste en el capítulo 11, antes de leer `.message`.
 
 ## Secuencial frente a paralelo
 
-Este es el error de rendimiento más común:
+Dos `await` seguidos se ejecutan uno detrás de otro: el segundo no empieza hasta que termina el primero.
 
 ```ts
 async function secuencial(): Promise<void> {
@@ -3187,6 +3247,8 @@ async function secuencial(): Promise<void> {
 }
 ```
 
+Si las operaciones no dependen una de otra, se pueden lanzar a la vez con `Promise.all`, que espera a que terminen todas y devuelve sus resultados en el mismo orden:
+
 ```ts
 async function paralelo(): Promise<void> {
   const inicio = Date.now();
@@ -3196,9 +3258,9 @@ async function paralelo(): Promise<void> {
 }
 ```
 
-La demo imprime los tiempos reales: la versión secuencial tarda unos 300 ms y la paralela unos 150. Si dos operaciones no dependen una de otra, **no las encadenes con `await`**.
+La demo imprime los tiempos reales: la versión secuencial tarda unos 300 ms y la paralela unos 150.
 
-`Promise.all` falla entera si falla una. Si quieres el resultado de todas pase lo que pase:
+Si falla una sola promesa, `Promise.all` falla entera. Para obtener el resultado de cada una aunque alguna falle, se usa `Promise.allSettled`:
 
 ```ts
 // Promise.allSettled: no falla aunque alguna rechace.
@@ -3214,12 +3276,12 @@ async function todasConResultado(): Promise<void> {
 |---|---|
 | `Promise.all` | Espera a todas. Si **una** falla, falla todo |
 | `Promise.allSettled` | Espera a todas y devuelve el estado de cada una. Nunca falla |
-| `Promise.race` | Devuelve la primera que termine, resuelva o rechace |
-| `Promise.any` | Devuelve la primera que **resuelva** correctamente |
+| `Promise.race` | Devuelve la primera que termine, se cumpla o se rechace |
+| `Promise.any` | Devuelve la primera que se **cumpla** |
 
 ## `fetch` tipado
 
-Así se consume una API REST. Primero se describe con una `interface` qué forma tienen los datos:
+`fetch` hace una petición HTTP y devuelve una promesa. Primero se describe con una `interface` la forma de los datos que devuelve la API:
 
 ```ts
 // Así se consume una API REST. En Angular será this.http.get<T>(url).
@@ -3238,30 +3300,29 @@ async function obtenerPost(id: number): Promise<Post> {
     throw new Error(`Error HTTP ${respuesta.status}`);
   }
 
-  // `.json()` devuelve Promise<any>: el genérico le pone tipo.
+  // `.json()` devuelve Promise<any>: `as Post` indica el tipo, pero no lo comprueba.
   return (await respuesta.json()) as Post;
 }
 ```
 
-Dos trampas habituales:
+Hay dos trampas habituales:
 
 1. **`fetch` solo rechaza la promesa si hay un fallo de red.** Un 404 o un 500 son respuestas válidas para él, así que hay que mirar `respuesta.ok` a mano.
-2. **`.json()` devuelve `any`.** La aserción `as Post` es una promesa tuya al compilador, no una validación: si la API devuelve otra cosa, nadie te avisará.
+2. **`.json()` devuelve `any`.** `as Post` le dice al compilador qué tipo esperar, pero no comprueba nada: si la API devuelve otra cosa, nadie te avisará.
 
-Varias peticiones a la vez, combinando lo anterior:
+Para hacer varias peticiones a la vez, se combina con `Promise.all`:
 
 ```ts
-    // Varias peticiones en paralelo
-    const posts = await Promise.all([obtenerPost(2), obtenerPost(3)]);
-    posts.forEach((p) => console.log(`fetch paralelo -> [${p.id}] ${p.title}`));
+const posts = await Promise.all([obtenerPost(2), obtenerPost(3)]);
+posts.forEach((p) => console.log(`fetch paralelo -> [${p.id}] ${p.title}`));
 ```
 
 > La demo hace peticiones reales a `jsonplaceholder.typicode.com`. Sin conexión a
 > internet, esa última parte fallará; el resto del fichero funciona igual.
 
-## Top-level await
+## `await` fuera de una función
 
-Al final de la demo verás llamadas con `await` fuera de cualquier función:
+Al final de la demo verás llamadas con `await` fuera de cualquier función. Se llama *top-level await*:
 
 ```ts
 // await de nivel superior (top-level await): permitido en módulos ESM.
@@ -3270,7 +3331,7 @@ await secuencial();
 await paralelo();
 ```
 
-Solo está permitido en módulos ESM, que es lo que usa este proyecto. Si el fichero no tuviera ningún `import`/`export`, TypeScript daría error: por eso la demo termina con `export {};`.
+Solo está permitido en módulos, es decir, en ficheros con algún `import` o `export`. Sin ninguno, TypeScript da el error `TS1375`, y por eso la demo termina con `export {};`.
 
 ## Y en Angular: Observables
 
@@ -3902,7 +3963,7 @@ Los logpoints se marcan con un rombo rojo en vez de un círculo, y son la mejor 
 
 El capítulo 15 es donde el depurador más ayuda, porque el orden de ejecución no es el que se lee.
 
-Abre `src/15-async/demo.ts` y pon un breakpoint en la línea 38:
+Abre `src/15-async/demo.ts` y pon un breakpoint en la línea 51:
 
 ```ts
 const mensaje = await esperar(200); // pausa aquí hasta que resuelva

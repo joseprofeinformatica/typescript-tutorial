@@ -31,7 +31,20 @@ esperar(100)
   .catch((error: Error) => console.error("catch ->", error.message))
   .finally(() => console.log("finally -> pase lo que pase"));
 
-// ---------- Consumir con async/await (más legible) ----------
+// ---------- Funciones asíncronas: async y await ----------
+// await detiene SOLO la función en la que está, no el programa.
+async function mostrarEspera(): Promise<void> {
+  console.log("Antes del await");
+  const mensaje = await esperar(200); // la función se detiene aquí
+  console.log(mensaje);
+}
+
+// Una función async devuelve SIEMPRE una promesa.
+async function doble(n: number): Promise<number> {
+  return n * 2; // el return da un number; la función devuelve Promise<number>
+}
+
+// Gestionar los errores con try/catch
 // `async` hace que la función devuelva SIEMPRE una Promise.
 async function conAwait(): Promise<void> {
   try {
@@ -87,7 +100,7 @@ async function obtenerPost(id: number): Promise<Post> {
     throw new Error(`Error HTTP ${respuesta.status}`);
   }
 
-  // `.json()` devuelve Promise<any>: el genérico le pone tipo.
+  // `.json()` devuelve Promise<any>: `as Post` indica el tipo, pero no lo comprueba.
   return (await respuesta.json()) as Post;
 }
 
@@ -108,6 +121,12 @@ async function demoFetch(): Promise<void> {
 
 // ---------- Orquestar la demo ----------
 // await de nivel superior (top-level await): permitido en módulos ESM.
+mostrarEspera();
+console.log("Esto sale antes que el mensaje");
+
+const resultado = await doble(4);
+console.log(resultado); // 8
+
 await conAwait();
 await secuencial();
 await paralelo();
