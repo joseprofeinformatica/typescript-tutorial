@@ -3181,29 +3181,63 @@ Es la otra forma de recoger el resultado, y la más habitual porque se lee de ar
 - **`async`**, delante de `function`, declara una función asíncrona.
 - **`await`**, delante de una promesa, espera a que termine y entrega su valor: `await fetch(URL_POST)` da la respuesta del servidor (`Response`), no una `Promise<Response>`.
 
-Este es el `fetch` de antes, ahora gestionado de forma asíncrona:
+Vamos a pedir un usuario a la misma API, pero esta vez esperando el resultado. La API devuelve sus datos en inglés y con la ciudad dentro de otro objeto, y en nuestra aplicación queremos trabajar con una estructura más sencilla. Por eso definimos dos interfaces y **mapeamos** los datos, es decir, creamos un objeto de nuestra interfaz a partir de lo que llega:
 
 ```ts
-async function mostrarTitulo(): Promise<void> {
-  console.log("Pido el post");
-  const respuesta = await fetch(URL_POST); // la función se detiene aquí
-  const post = (await respuesta.json()) as { title: string }; // leer el cuerpo también es asíncrono
-  console.log("Título:", post.title);
+// Lo que devuelve la API (solo los campos que nos interesan)
+interface UsuarioApi {
+  id: number;
+  name: string;
+  email: string;
+  address: { city: string };
 }
 
-mostrarTitulo();
-console.log("Esto sale antes que el título");
+// Cómo queremos trabajar con esos datos en nuestra aplicación
+interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  ciudad: string;
+}
+
+async function mostrarUsuario(id: number): Promise<void> {
+  console.log("Pido el usuario");
+  const respuesta = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`); // la función se detiene aquí
+  const datos = (await respuesta.json()) as UsuarioApi; // leer el cuerpo también es asíncrono
+
+  // Mapeo: creamos un objeto con nuestra interfaz a partir de los datos de la API
+  const usuario: Usuario = {
+    id: datos.id,
+    nombre: datos.name,
+    email: datos.email,
+    ciudad: datos.address.city,
+  };
+
+  console.log(usuario);
+}
+
+mostrarUsuario(1);
+console.log("Esto sale antes que el usuario");
 ```
 
 Salida:
 
 ```
-Pido el post
-Esto sale antes que el título
-Título: sunt aut facere repellat provident occaecati excepturi optio reprehenderit
+Pido el usuario
+Esto sale antes que el usuario
+{
+  id: 1,
+  nombre: 'Leanne Graham',
+  email: 'Sincere@april.biz',
+  ciudad: 'Gwenborough'
+}
 ```
 
-Ahora sí tenemos los datos. Y fíjate en el orden: `await` detiene **solo la función en la que está**, no el programa. Mientras `mostrarTitulo` espera al servidor, el código que la llamó sigue ejecutándose.
+Aquí hay tres cosas importantes:
+
+- **Ahora sí tenemos los datos**, porque cada `await` espera a que termine su promesa.
+- **`await` detiene solo la función en la que está**, no el programa. Mientras `mostrarUsuario` espera al servidor, el código que la llamó sigue ejecutándose. Por eso el segundo mensaje sale antes que el usuario.
+- **`as UsuarioApi` no convierte nada**: solo le dice al compilador qué forma esperar. El mapeo es lo que crea el objeto `Usuario`, y si la API cambiara algún nombre, solo habría que tocar este punto de la aplicación.
 
 ### Lo que devuelve una función `async`
 
@@ -3296,7 +3330,7 @@ async function todasConResultado(): Promise<void> {
 
 ## `fetch` tipado
 
-En `mostrarTitulo` hemos indicado sobre la marcha que `post` tiene un `title`. Lo habitual es describir con una `interface` la forma completa de los datos que devuelve la API:
+`mostrarUsuario` da por hecho que la petición ha ido bien y solo muestra el resultado. Lo habitual es escribir una función que compruebe la respuesta y **devuelva** los datos tipados, para usarlos donde hagan falta:
 
 ```ts
 // Así se consume una API REST. En Angular será this.http.get<T>(url).
@@ -3975,7 +4009,7 @@ Los logpoints se marcan con un rombo rojo en vez de un círculo, y son la mejor 
 
 El capítulo 15 es donde el depurador más ayuda, porque el orden de ejecución no es el que se lee.
 
-Abre `src/15-async/demo.ts` y pon un breakpoint en la línea 53:
+Abre `src/15-async/demo.ts` y pon un breakpoint en la línea 78:
 
 ```ts
 const mensaje = await esperar(200); // pausa aquí hasta que resuelva

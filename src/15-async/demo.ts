@@ -34,11 +34,36 @@ esperar(100)
 
 // ---------- Funciones asíncronas: async y await ----------
 // await detiene SOLO la función en la que está, no el programa.
-async function mostrarTitulo(): Promise<void> {
-  console.log("Pido el post");
-  const respuesta = await fetch(URL_POST); // la función se detiene aquí
-  const post = (await respuesta.json()) as { title: string }; // leer el cuerpo también es asíncrono
-  console.log("Título:", post.title);
+// Lo que devuelve la API (solo los campos que nos interesan)
+interface UsuarioApi {
+  id: number;
+  name: string;
+  email: string;
+  address: { city: string };
+}
+
+// Cómo queremos trabajar con esos datos en nuestra aplicación
+interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  ciudad: string;
+}
+
+async function mostrarUsuario(id: number): Promise<void> {
+  console.log("Pido el usuario");
+  const respuesta = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`); // la función se detiene aquí
+  const datos = (await respuesta.json()) as UsuarioApi; // leer el cuerpo también es asíncrono
+
+  // Mapeo: creamos un objeto con nuestra interfaz a partir de los datos de la API
+  const usuario: Usuario = {
+    id: datos.id,
+    nombre: datos.name,
+    email: datos.email,
+    ciudad: datos.address.city,
+  };
+
+  console.log(usuario);
 }
 
 // Una función async devuelve SIEMPRE una promesa.
@@ -123,8 +148,8 @@ async function demoFetch(): Promise<void> {
 
 // ---------- Orquestar la demo ----------
 // await de nivel superior (top-level await): permitido en módulos ESM.
-mostrarTitulo();
-console.log("Esto sale antes que el título");
+mostrarUsuario(1);
+console.log("Esto sale antes que el usuario");
 
 const resultado = await doble(4);
 console.log(resultado); // 8
