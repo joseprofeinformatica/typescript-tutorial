@@ -6,12 +6,13 @@
  * Ejecutar:  npm run play -- src/15-async/demo.ts
  */
 
-// ---------- Síncrono vs asíncrono ----------
-console.log("1. Empieza el programa");
+// ---------- Qué pasa si no esperas el resultado ----------
+const URL_POST = "https://jsonplaceholder.typicode.com/posts/1";
 
-setTimeout(() => console.log("3. Esto llega después (asíncrono)"), 0);
-
-console.log("2. Esto se ejecuta antes que el setTimeout");
+console.log("1. Pido el post");
+const peticion = fetch(URL_POST);
+console.log("2. Esto es lo que tengo:", peticion); // Promise { <pending> }
+// console.log(peticion.ok);   // Error: Property 'ok' does not exist on type 'Promise<Response>'.
 
 // ---------- Crear una promesa ----------
 // Promise<T>: es genérico. T es el tipo del valor que resolverá.
@@ -33,10 +34,11 @@ esperar(100)
 
 // ---------- Funciones asíncronas: async y await ----------
 // await detiene SOLO la función en la que está, no el programa.
-async function mostrarEspera(): Promise<void> {
-  console.log("Antes del await");
-  const mensaje = await esperar(200); // la función se detiene aquí
-  console.log(mensaje);
+async function mostrarTitulo(): Promise<void> {
+  console.log("Pido el post");
+  const respuesta = await fetch(URL_POST); // la función se detiene aquí
+  const post = (await respuesta.json()) as { title: string }; // leer el cuerpo también es asíncrono
+  console.log("Título:", post.title);
 }
 
 // Una función async devuelve SIEMPRE una promesa.
@@ -100,7 +102,7 @@ async function obtenerPost(id: number): Promise<Post> {
     throw new Error(`Error HTTP ${respuesta.status}`);
   }
 
-  // `.json()` devuelve Promise<any>: `as Post` indica el tipo, pero no lo comprueba.
+  // `.json()` no conoce la forma de los datos: `as Post` indica el tipo, pero no lo comprueba.
   return (await respuesta.json()) as Post;
 }
 
@@ -121,8 +123,8 @@ async function demoFetch(): Promise<void> {
 
 // ---------- Orquestar la demo ----------
 // await de nivel superior (top-level await): permitido en módulos ESM.
-mostrarEspera();
-console.log("Esto sale antes que el mensaje");
+mostrarTitulo();
+console.log("Esto sale antes que el título");
 
 const resultado = await doble(4);
 console.log(resultado); // 8
