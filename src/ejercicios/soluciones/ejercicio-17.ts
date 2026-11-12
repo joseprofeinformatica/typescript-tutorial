@@ -1,104 +1,69 @@
 /**
- * EJERCICIO 17 — Cargar las notas desde el servidor
- * Capítulo 15 (promesas, async/await, Promise.all, fetch)
+ * EJERCICIO 17 — Las tareas del servidor
+ * Capítulo 15 (async/await, fetch, try/catch, Promise.all)
  */
 
-interface Alumno {
-  id: number;
-  nombre: string;
-  nota: number;
-}
-
-/**
- * 1. Simulamos el servidor con una promesa que tarda.
- *    Promise<T> es genérico: T es el tipo que resolverá.
- */
-function buscarAlumno(id: number): Promise<Alumno> {
-  return new Promise<Alumno>((resolve, reject) => {
-    setTimeout(() => {
-      if (id <= 0) {
-        reject(new Error(`Id no válido: ${id}`));
-        return;
-      }
-      resolve({ id, nombre: `Alumno ${id}`, nota: 5 + (id % 5) });
-    }, 120);
-  });
-}
-
-// 2. Consumirla con async/await y try/catch
-async function mostrarUno(): Promise<void> {
-  try {
-    const alumno = await buscarAlumno(3);
-    console.log(`Encontrado -> ${alumno.nombre} con ${alumno.nota}`);
-
-    await buscarAlumno(-1); // esta rechaza
-  } catch (error) {
-    // Lo capturado es `unknown`: hay que comprobar qué es
-    if (error instanceof Error) {
-      console.log(`Error controlado -> ${error.message}`);
-    }
-  }
-}
-
-/**
- * 3. SECUENCIAL frente a PARALELO.
- *    Si las peticiones no dependen entre sí, encadenarlas con await
- *    triplica el tiempo sin ningún motivo.
- */
-async function comparar(): Promise<void> {
-  const t1 = Date.now();
-  await buscarAlumno(1);
-  await buscarAlumno(2);
-  await buscarAlumno(3);
-  const secuencial = Date.now() - t1;
-
-  const t2 = Date.now();
-  const alumnos = await Promise.all([buscarAlumno(1), buscarAlumno(2), buscarAlumno(3)]);
-  const paralelo = Date.now() - t2;
-
-  console.log(`Secuencial: ~${Math.round(secuencial / 100) * 100} ms`);
-  console.log(`Paralelo:   ~${Math.round(paralelo / 100) * 100} ms`);
-  console.log(`Media de los 3 -> ${(alumnos.reduce((a, x) => a + x.nota, 0) / 3).toFixed(2)}`);
-}
-
-// 4. allSettled: no falla aunque alguna promesa rechace
-async function tolerante(): Promise<void> {
-  const resultados = await Promise.allSettled([buscarAlumno(1), buscarAlumno(-5), buscarAlumno(2)]);
-
-  resultados.forEach((r, i) => {
-    if (r.status === "fulfilled") {
-      console.log(`  [${i}] OK -> ${r.value.nombre}`);
-    } else {
-      console.log(`  [${i}] KO -> ${(r.reason as Error).message}`);
-    }
-  });
-}
-
-// 5. fetch real y tipado contra una API pública
-interface PostApi {
+// 1. Lo que devuelve la API (en inglés) y cómo lo queremos en la aplicación
+interface TareaApi {
+  userId: number;
   id: number;
   title: string;
+  completed: boolean;
 }
 
-async function desdeApi(): Promise<void> {
-  try {
-    const respuesta = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+interface Tarea {
+  id: number;
+  titulo: string;
+  completada: boolean;
+}
 
-    // fetch NO lanza error con un 404 o un 500: hay que comprobarlo
-    if (!respuesta.ok) throw new Error(`Error HTTP ${respuesta.status}`);
+// 2. Función asíncrona: pide las tareas de un usuario y las mapea a nuestra interfaz
+async function obtenerTareas(usuario: number): Promise<Tarea[]> {
+  const respuesta = await fetch(`https://jsonplaceholder.typicode.com/todos?userId=${usuario}`);
 
-    const post = (await respuesta.json()) as PostApi;
-    console.log(`API -> post ${post.id}: ${post.title.slice(0, 30)}…`);
-  } catch (error) {
-    if (error instanceof Error) console.log(`Sin conexión: ${error.message}`);
+  // fetch NO lanza error con un 404 o un 500: hay que comprobarlo a mano
+  if (!respuesta.ok) {
+    throw new Error(`Error HTTP ${respuesta.status}`);
+  }
+
+  // .json() no conoce la forma de los datos: `as` indica el tipo, pero no lo comprueba
+  const datos = (await respuesta.json()) as TareaApi[];
+
+  // Mapeo: cada TareaApi se convierte en una Tarea
+  return datos.map((t) => ({ id: t.id, titulo: t.title, completada: t.completed }));
+}
+
+// 3-6. Programa principal. Todo dentro de try/catch: la red puede fallar
+try {
+  const tareas = await obtenerTareas(1);
+
+  // 3. Recuento
+  const completadas = tareas.filter((t) => t.completada);
+  const porcentaje = (completadas.length / tareas.length) * 100;
+  console.log(`Usuario 1: ${tareas.length} tareas`);
+  console.log(`Completadas: ${completadas.length} (${porcentaje.toFixed(1)} %)`);
+  console.log(`Pendientes: ${tareas.length - completadas.length}`);
+
+  // 4. Las tres primeras pendientes
+  console.log("Primeras pendientes:");
+  tareas
+    .filter((t) => !t.completada)
+    .slice(0, 3)
+    .forEach((t) => console.log(`  - ${t.titulo}`));
+
+  // 5. El título más largo, con reduce
+  const masLarga = tareas.reduce((max, t) => (t.titulo.length > max.titulo.length ? t : max));
+  console.log(`Título más largo: ${masLarga.titulo}`);
+
+  // 6. Dos peticiones a la vez: no dependen una de otra
+  const [deUno, deDos] = await Promise.all([obtenerTareas(1), obtenerTareas(2)]);
+  const contar = (lista: Tarea[]): number => lista.filter((t) => t.completada).length;
+  console.log(`Completadas -> usuario 1: ${contar(deUno)} | usuario 2: ${contar(deDos)}`);
+} catch (error) {
+  // Lo capturado es `unknown`: hay que comprobar qué es
+  if (error instanceof Error) {
+    console.log(`No se pudieron cargar las tareas: ${error.message}`);
   }
 }
-
-// Top-level await: permitido porque este fichero es un módulo ESM
-await mostrarUno();
-await comparar();
-console.log("allSettled:");
-await tolerante();
-await desdeApi();
 
 export {};

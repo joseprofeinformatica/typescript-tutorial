@@ -3751,45 +3751,54 @@ Tras intentar colar un alumno: el servicio sigue con 3
 
 ---
 
-### Ejercicio 17 — Cargar las notas del servidor
-*Capítulo 15* · **Practicarás:** promesas, `async` / `await`, errores con `try` / `catch`, peticiones en paralelo y `fetch`.
+### Ejercicio 17 — Las tareas del servidor
+*Capítulo 15* · **Practicarás:** funciones `async` con `await`, `fetch`, comprobar la respuesta, `try` / `catch`, mapear datos a una interfaz y `Promise.all`.
 
-Las peticiones a un servidor tardan, y a veces fallan. Como no tienes un servidor propio, lo simularás con una función que tarda un poco en responder.
+Esta vez vas a trabajar con datos reales. La API pública de pruebas `jsonplaceholder.typicode.com` tiene una lista de tareas de varios usuarios. Esta dirección devuelve las del usuario 1:
+
+```
+https://jsonplaceholder.typicode.com/todos?userId=1
+```
+
+Ábrela en el navegador antes de empezar: verás un array de objetos con `userId`, `id`, `title` y `completed`.
 
 **Pasos**
 
-1. Escribe `buscarAlumno(id)`, que devuelva un `Promise<Alumno>`. Pasados 120 ms debe resolver con este objeto:
-   ```ts
-   { id, nombre: `Alumno ${id}`, nota: 5 + (id % 5) }
-   ```
-   Si el `id` es 0 o negativo, en vez de eso debe rechazar con un error.
-2. Con `async` / `await`, busca el alumno 3 y muéstralo. Después busca el `-1` y captura el error con `try` / `catch`.
-3. Mide cuánto tardan tres peticiones (ids 1, 2 y 3) hechas **una detrás de otra**, cada una con su `await`. Mide después cuánto tardan las mismas tres lanzadas **a la vez** con `Promise.all`. Muestra también la media de las tres notas.
-4. Usa `Promise.allSettled` con los ids 1, -5 y 2. La segunda fallará, pero el programa no debe detenerse: muestra el resultado de cada una.
-5. Termina con una petición real con `fetch` a `https://jsonplaceholder.typicode.com/posts/1`. Muestra el `id` y los 30 primeros caracteres del `title`.
+1. Define dos interfaces:
+   - `TareaApi`, con los cuatro campos tal como llegan de la API.
+   - `Tarea`, con los datos tal como los usarás en tu programa: `id`, `titulo` (texto) y `completada` (booleano).
+2. Escribe la función asíncrona `obtenerTareas(usuario)`, que devuelva un `Promise<Tarea[]>`:
+   - Pide con `fetch` las tareas de ese usuario.
+   - Si la respuesta no es correcta, lanza un error con el mensaje `Error HTTP ` seguido del código de estado.
+   - Lee los datos con `.json()` y **mapea** cada `TareaApi` a una `Tarea`.
+3. Obtén las tareas del usuario 1 y muestra cuántas hay, cuántas están completadas (con el porcentaje, con un decimal) y cuántas pendientes.
+4. Muestra los títulos de las **tres primeras** tareas pendientes.
+5. Muestra el título más largo usando `reduce`.
+6. Pide **a la vez**, con `Promise.all`, las tareas de los usuarios 1 y 2, y muestra cuántas ha completado cada uno.
+
+Escribe los pasos 3 a 6 dentro de un `try`/`catch`. Si la petición falla, debe mostrarse `No se pudieron cargar las tareas: ` seguido del mensaje del error.
 
 > 💡 **Pistas**
-> - Para el retraso del paso 1, usa `setTimeout` dentro de `new Promise((resolve, reject) => { ... })`.
+> - Usa `await` fuera de una función, directamente en el fichero, como se explica en «`await` fuera de una función». Recuerda terminar con `export {};`.
+> - `fetch` **no** lanza un error si el servidor responde con un 404 o un 500. Tienes que comprobar tú `respuesta.ok`, y el código está en `respuesta.status`.
+> - `.json()` devuelve `Promise<unknown>`. Indica el tipo con `as TareaApi[]`.
 > - En el `catch`, el error es de tipo `unknown`. Compruébalo con `error instanceof Error` antes de leer `error.message`.
-> - Para medir un tiempo, guarda `Date.now()` antes y réstalo después. Redondea a las centenas.
-> - `fetch` **no** lanza un error si el servidor responde con un 404 o un 500. Tienes que comprobar tú `respuesta.ok`.
 
 **Salida esperada**
 
 ```
-Encontrado -> Alumno 3 con 8
-Error controlado -> Id no válido: -1
-Secuencial: ~400 ms
-Paralelo:   ~100 ms
-Media de los 3 -> 7.00
-allSettled:
-  [0] OK -> Alumno 1
-  [1] KO -> Id no válido: -5
-  [2] OK -> Alumno 2
-API -> post 1: sunt aut facere repellat provi…
+Usuario 1: 20 tareas
+Completadas: 11 (55.0 %)
+Pendientes: 9
+Primeras pendientes:
+  - delectus aut autem
+  - quis ut nam facilis et officia qui
+  - fugiat veniam minus
+Título más largo: laboriosam mollitia et enim quasi adipisci quia provident illum
+Completadas -> usuario 1: 11 | usuario 2: 8
 ```
 
-> Los tiempos son aproximados y dependen de cada ordenador. Lo importante es la proporción: en paralelo debe tardar aproximadamente **un tercio** que una detrás de otra. La última línea necesita conexión a internet.
+> Necesita conexión a internet. Para comprobar que gestionas bien los errores, cambia `todos` por `tareas` en la dirección: debe mostrarse `No se pudieron cargar las tareas: Error HTTP 404`.
 
 ---
 

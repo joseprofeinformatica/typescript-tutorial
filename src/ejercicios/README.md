@@ -38,7 +38,7 @@ npm run play -- src/ejercicios/soluciones/ejercicio-01.ts
 | 14 | [Un repositorio para cualquier entidad](soluciones/ejercicio-14.ts) | 12 | Genéricos, restricción `extends`, `keyof`, `Map` |
 | 15 | [Un modelo, muchas vistas](soluciones/ejercicio-15.ts) | 13 | `Omit`, `Pick`, `Partial`, `Record`, `ReturnType`, indexed access |
 | 16 | [Repartir el código en módulos](soluciones/ejercicio-16/) | 14 | `import`/`export`, `import type`, barrel file, estructura Angular |
-| 17 | [Cargar las notas del servidor](soluciones/ejercicio-17.ts) | 15 | `Promise<T>`, `async`/`await`, `Promise.all`, `allSettled`, `fetch` |
+| 17 | [Las tareas del servidor](soluciones/ejercicio-17.ts) | 15 | `async`/`await`, `fetch` a una API real, `respuesta.ok`, mapeo a una interfaz, `Promise.all` |
 | 18 | [Decoradores académicos](soluciones/ejercicio-18.ts) | 16 | Decoradores de clase, método, propiedad y parámetro; factories |
 
 > El ejercicio 16 es **multi-fichero**. Se ejecuta con:
